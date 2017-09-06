@@ -2,9 +2,14 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <assert.h>
 
 #include <cpuid.h>
+
+#ifdef USE_STRNSTR
+#define STRSTR(haystack,needle) strnstr((haystack),(needle),sizeof(haystack))
+#else
+#define STRSTR(haystack,needle) strstr((haystack),(needle))
+#endif
 
 static int get_cpu_name(char cpu_name[48])
 {
@@ -34,55 +39,43 @@ static int get_cpu_name(char cpu_name[48])
     *(uint32_t *)&cpu_name[32+8]  = ecx;
     *(uint32_t *)&cpu_name[32+12] = edx;
 
-#ifdef DEBUG
-    for (int i=0; i<48; i++) {
-        printf("%c", cpu_name[i]);
-    }
-    printf("\n");
-#endif
-
     return 0;
 }
-
-
-#ifdef USE_STRNSTR
-#define STRSTR(haystack,needle) strnstr((haystack),(needle),sizeof(haystack))
-#else
-#define STRSTR(haystack,needle) strstr((haystack),(needle))
-#endif
 
 int vpu_count(void)
 {
     char cpu_name[48] = {0};
 
     get_cpu_name(cpu_name);
+#ifdef DEBUG
     printf("cpu_name = %s\n", cpu_name);
+#endif
 
-    const char platinum[26] = "Intel(R) Xeon(R) Platinum";
-    const char gold[22]     = "Intel(R) Xeon(R) Gold";
-    const char silver[24]   = "Intel(R) Xeon(R) Silver";
-    const char bronze[24]   = "Intel(R) Xeon(R) Bronze";
-
-    char skustr[5] = {0};
-    int  skunum = 0;
+    const char xeon[17] = "Intel(R) Xeon(R)";
+    const char platinum[9] = "Platinum";
+    const char gold[5]     = "Gold";
+    const char silver[7]   = "Silver";
+    const char bronze[7]   = "Bronze";
 
     const char * loc;
 
+    /* FIXME: KNL should return 2 before the Xeon check. */
+
+    loc = STRSTR(cpu_name, xeon);
+    if (loc == NULL) {
+        return 0;
+    }
+
     loc = STRSTR(cpu_name, platinum);
     if (loc != NULL) {
-        memcpy(&skustr,loc+sizeof(platinum),4);
-        skunum = atoi(skustr);
-        if (skunum >= 8000) {
-            return 2;
-        } else {
-            printf("%s %d does not exist.\n", platinum, skunum);
-        }
+        return 2;
     }
 
     loc = STRSTR(cpu_name, gold);
     if (loc != NULL) {
+        char skustr[5] = {0};
         memcpy(&skustr,loc+sizeof(gold),4);
-        skunum = atoi(skustr);
+        const int skunum = atoi(skustr);
         if (skunum == 5122) {
             /* https://ark.intel.com/products/120475/Intel-Xeon-Gold-5122-Processor-16_5M-Cache-3_60-GHz */
             return 2;
@@ -97,24 +90,12 @@ int vpu_count(void)
 
     loc = STRSTR(cpu_name, silver);
     if (loc != NULL) {
-        memcpy(&skustr,loc+sizeof(silver),4);
-        skunum = atoi(skustr);
-        if (4999 >= skunum && skunum >= 4000) {
-            return 1;
-        } else {
-            printf("%s %d does not exist.\n", silver, skunum);
-        }
+        return 1;
     }
 
     loc = STRSTR(cpu_name, bronze);
     if (loc != NULL) {
-        memcpy(&skustr,loc+sizeof(bronze),4);
-        skunum = atoi(skustr);
-        if (3999 >= skunum && skunum >= 3000) {
-            return 1;
-        } else {
-            printf("%s %d does not exist.\n", bronze, skunum);
-        }
+        return 1;
     }
 
     return 0;
