@@ -1,6 +1,8 @@
 CC = gcc
 CFLAGS = -g -Wall
 
+CFLAGS += -DDEBUG
+
 all: test.x
 
 test.x: test.o vpu-count.o
