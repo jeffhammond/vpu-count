@@ -49,7 +49,8 @@ int vpu_count(void)
     printf("cpu_name = %s\n", cpu_name);
 #endif
 
-    const char xeon[17] = "Intel(R) Xeon(R)";
+    const char skx[17]     = "Intel(R) Xeon(R)";
+    const char knl[29]     = "Intel(R) Xeon Phi(TM) CPU 72";
     const char platinum[9] = "Platinum";
     const char gold[5]     = "Gold";
     const char silver[7]   = "Silver";
@@ -57,16 +58,30 @@ int vpu_count(void)
 
     const char * loc;
 
-    /* FIXME: KNL should return 2 before the Xeon check. */
+    /* Xeon Phi 72xx aka KNL always has 2 VPU */
+    loc = STRSTR(cpu_name, knl);
+    if (loc != NULL) {
+        return 2;
+    }
 
-    loc = STRSTR(cpu_name, xeon);
+    /* FIXME: Add Core i9 X-series... */
+
+    /* If it is not Xeon, it doesn't have AVX-512 */
+    loc = STRSTR(cpu_name, skx);
     if (loc == NULL) {
         return 0;
     }
 
     loc = STRSTR(cpu_name, platinum);
     if (loc != NULL) {
-        return 2;
+        char skustr[5] = {0};
+        memcpy(&skustr,loc+sizeof(platinum),4);
+        const int skunum = atoi(skustr);
+        if (8199 >= skunum && skunum >= 8100) {
+            return 2;
+        } else {
+            printf("%s %d does not exist.\n", platinum, skunum);
+        }
     }
 
     loc = STRSTR(cpu_name, gold);
@@ -77,9 +92,9 @@ int vpu_count(void)
         if (skunum == 5122) {
             /* https://ark.intel.com/products/120475/Intel-Xeon-Gold-5122-Processor-16_5M-Cache-3_60-GHz */
             return 2;
-        } else if (6999 >= skunum && skunum >= 6000) {
+        } else if (6199 >= skunum && skunum >= 6100) {
             return 2;
-        } else if (5999 >= skunum && skunum >= 5000) {
+        } else if (5199 >= skunum && skunum >= 5100) {
             return 1;
         } else {
             printf("%s %d does not exist.\n", gold, skunum);
@@ -88,12 +103,26 @@ int vpu_count(void)
 
     loc = STRSTR(cpu_name, silver);
     if (loc != NULL) {
-        return 1;
+        char skustr[5] = {0};
+        memcpy(&skustr,loc+sizeof(silver),4);
+        const int skunum = atoi(skustr);
+        if (4199 >= skunum && skunum >= 4100) {
+            return 1;
+        } else {
+            printf("%s %d does not exist.\n", silver, skunum);
+        }
     }
 
     loc = STRSTR(cpu_name, bronze);
     if (loc != NULL) {
-        return 1;
+        char skustr[5] = {0};
+        memcpy(&skustr,loc+sizeof(bronze),4);
+        const int skunum = atoi(skustr);
+        if (3199 >= skunum && skunum >= 3100) {
+            return 1;
+        } else {
+            printf("%s %d does not exist.\n", bronze, skunum);
+        }
     }
 
     return 0;
