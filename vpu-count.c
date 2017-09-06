@@ -11,7 +11,7 @@
 #define STRSTR(haystack,needle) strstr((haystack),(needle))
 #endif
 
-static int get_cpu_name(char cpu_name[48])
+static void get_cpu_name(char cpu_name[48])
 {
     uint32_t eax, ebx, ecx, edx;
 
@@ -38,8 +38,6 @@ static int get_cpu_name(char cpu_name[48])
     *(uint32_t *)&cpu_name[32+4]  = ebx;
     *(uint32_t *)&cpu_name[32+8]  = ecx;
     *(uint32_t *)&cpu_name[32+12] = edx;
-
-    return 0;
 }
 
 int vpu_count(void)
