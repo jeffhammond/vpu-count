@@ -130,6 +130,8 @@ int vpu_count(void)
                 return 2;
             }
         }
+        /* If we get here, the part is not supported by the SKX logic */
+        return -1;
     }
-    return -1;
+    return 0;
 }
