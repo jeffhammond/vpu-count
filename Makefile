@@ -20,4 +20,5 @@ time.x: time.o vpu-count.o
 clean:
 	-rm -f *.o
 	-rm -f *.x
+	-rm -rf *.dSYM
 
