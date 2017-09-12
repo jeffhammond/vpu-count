@@ -5,6 +5,8 @@
 
 #include <immintrin.h>
 
+#include <omp.h>
+
 static uint64_t rdtsc(void)
 {
     unsigned int ax, dx;
@@ -112,45 +114,54 @@ uint64_t fma_only_tpt(int loop_cnt) {
 
 int main(void)
 {
-    uint64_t fma_shuf_tpt_test[3];
-    uint64_t fma_shuf_tpt_test_min;
-    uint64_t fma_only_tpt_test[3];
-    uint64_t fma_only_tpt_test_min;
-    uint64_t start = 0;
+    double t0 = omp_get_wtime();
+
     uint64_t number_of_fma_units_per_core = 2;
 
-    /*********************************************************/
-    /* Step 1: Warmup to get the AVX-512 license */
-    /*********************************************************/
-    fma_only_tpt(100000);
-    /*********************************************************/
-    /* Step 2: Execute FMA and Shuffle TPT Test */
-    /*********************************************************/
-    for(int i = 0; i < 3; i++){
-        start = rdtsc();
-        fma_shuffle_tpt(1000);
-        fma_shuf_tpt_test[i] = rdtsc() - start;
-    }
-    /*********************************************************/
-    /* Step 3: Execute FMA only TPT Test */
-    /*********************************************************/
-    for(int i = 0; i < 3; i++){
-        start = rdtsc();
-        fma_only_tpt(1000);
-        fma_only_tpt_test[i] = rdtsc() - start;
-    }
-    /*********************************************************/
-    /* Step 4: Decide if 1 FMA server or 2 FMA server */
-    /*********************************************************/
-    fma_shuf_tpt_test_min = fma_shuf_tpt_test[0];
-    fma_only_tpt_test_min = fma_only_tpt_test[0];
-    for(int i = 1; i < 3; i++){
-        if ((int)fma_shuf_tpt_test[i] < (int)fma_shuf_tpt_test_min) fma_shuf_tpt_test_min = fma_shuf_tpt_test[i];
-        if ((int)fma_only_tpt_test[i] < (int)fma_only_tpt_test_min) fma_only_tpt_test_min = fma_only_tpt_test[i];
-    }
-    if (((double)fma_shuf_tpt_test_min/(double)fma_only_tpt_test_min) < 1.5) {
-        number_of_fma_units_per_core = 1;
+    for (int r=0; r<1000; r++) {
+        uint64_t fma_shuf_tpt_test[3];
+        uint64_t fma_shuf_tpt_test_min;
+        uint64_t fma_only_tpt_test[3];
+        uint64_t fma_only_tpt_test_min;
+        uint64_t start = 0;
+        //uint64_t number_of_fma_units_per_core = 2;
+
+        /*********************************************************/
+        /* Step 1: Warmup to get the AVX-512 license */
+        /*********************************************************/
+        fma_only_tpt(100000);
+        /*********************************************************/
+        /* Step 2: Execute FMA and Shuffle TPT Test */
+        /*********************************************************/
+        for(int i = 0; i < 3; i++){
+            start = rdtsc();
+            fma_shuffle_tpt(1000);
+            fma_shuf_tpt_test[i] = rdtsc() - start;
+        }
+        /*********************************************************/
+        /* Step 3: Execute FMA only TPT Test */
+        /*********************************************************/
+        for(int i = 0; i < 3; i++){
+            start = rdtsc();
+            fma_only_tpt(1000);
+            fma_only_tpt_test[i] = rdtsc() - start;
+        }
+        /*********************************************************/
+        /* Step 4: Decide if 1 FMA server or 2 FMA server */
+        /*********************************************************/
+        fma_shuf_tpt_test_min = fma_shuf_tpt_test[0];
+        fma_only_tpt_test_min = fma_only_tpt_test[0];
+        for(int i = 1; i < 3; i++){
+            if ((int)fma_shuf_tpt_test[i] < (int)fma_shuf_tpt_test_min) fma_shuf_tpt_test_min = fma_shuf_tpt_test[i];
+            if ((int)fma_only_tpt_test[i] < (int)fma_only_tpt_test_min) fma_only_tpt_test_min = fma_only_tpt_test[i];
+        }
+        if (((double)fma_shuf_tpt_test_min/(double)fma_only_tpt_test_min) < 1.5) {
+            number_of_fma_units_per_core = 1;
+        }
+        //printf("%llu FMA server\n", number_of_fma_units_per_core);
     }
     printf("%llu FMA server\n", number_of_fma_units_per_core);
+    double t1 = omp_get_wtime();
+    printf("%f us, %f us\n", 1.e6*(t1-t0), 1.e6*(t1-t0)/1000.);
     return 0;
 }
