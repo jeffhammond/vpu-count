@@ -1,7 +1,7 @@
 CC = gcc
-CFLAGS = -g -Wall -O3 -fopenmp
+CFLAGS = -Wall -O3 -fopenmp
 
-#CFLAGS += -DDEBUG
+#CFLAGS += -DDEBUG -g3
 
 all: test.x time.x
 

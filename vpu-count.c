@@ -5,7 +5,24 @@
 
 #include <cpuid.h>
 
-void get_cpu_name(char cpu_name[48])
+void get_cpu_name32(char cpu_name[32])
+{
+    uint32_t eax, ebx, ecx, edx;
+
+    __cpuid(0x80000002u, eax, ebx, ecx, edx);
+    *(uint32_t *)&cpu_name[0]  = eax;
+    *(uint32_t *)&cpu_name[4]  = ebx;
+    *(uint32_t *)&cpu_name[8]  = ecx;
+    *(uint32_t *)&cpu_name[12] = edx;
+
+    __cpuid(0x80000003u, eax, ebx, ecx, edx);
+    *(uint32_t *)&cpu_name[16+0]  = eax;
+    *(uint32_t *)&cpu_name[16+4]  = ebx;
+    *(uint32_t *)&cpu_name[16+8]  = ecx;
+    *(uint32_t *)&cpu_name[16+12] = edx;
+}
+
+void get_cpu_name48(char cpu_name[48])
 {
     uint32_t eax, ebx, ecx, edx;
 
@@ -89,8 +106,8 @@ int vpu_count(void)
 #ifdef DEBUG
         printf("SKX\n");
 #endif
-        char cpu_name[48] = {0};
-        get_cpu_name(cpu_name);
+        char cpu_name[32] = {0};
+        get_cpu_name32(cpu_name);
 
 #ifdef DEBUG
         printf("cpu_name = %s\n", cpu_name);
@@ -101,7 +118,6 @@ int vpu_count(void)
         for (int i=0; i<6; i++) printf("%d,%d\n",i,(int)letters[i]);
 #endif
 #endif
-
 
         /* Skylake-X series: * "Intel(R) Core (TM)..." */
         if (cpu_name[9] == 'C') {
@@ -195,74 +211,58 @@ bool vpu_avx512(void)
 
 int vpu_name(void)
 {
-    if (true) {
-#ifdef DEBUG
-        printf("SKX\n");
-#endif
-        char cpu_name[48] = {0};
-        get_cpu_name(cpu_name);
+    char cpu_name[32] = {0};
+    get_cpu_name32(cpu_name);
 
-#ifdef DEBUG
-        printf("cpu_name = %s\n", cpu_name);
-        printf("cpu_name[9] = %c\n", cpu_name[9]);
-        printf("cpu_name[17] = %c\n", cpu_name[17]);
-#if 0
-        char letters[8] = {'C','P','G','S','B','W'};
-        for (int i=0; i<6; i++) printf("%d,%d\n",i,(int)letters[i]);
-#endif
-#endif
-
-        /* Skylake-X series: * "Intel(R) Core (TM)..." */
-        if (cpu_name[9] == 'C') {
-            /* FIXME need to figure out the answer here... */
-            return 911;
+    /* Skylake-X series: * "Intel(R) Core (TM)..." */
+    if (cpu_name[9] == 'C') {
+        /* FIXME need to figure out the answer here... */
+        return 911;
+    }
+    else if (cpu_name[9] == 'X') {
+        /* Xeon Scalable series: "Intel(R) Xeon(R) Platinum..." */
+        if (cpu_name[17] == 'P') {
+            return 2;
         }
-        else if (cpu_name[9] == 'X') {
-            /* Xeon Scalable series: "Intel(R) Xeon(R) Platinum..." */
-            if (cpu_name[17] == 'P') {
+        /* Xeon Scalable series: "Intel(R) Xeon(R) Silver..." */
+        else if (cpu_name[17] == 'S') {
+            return 1;
+        }
+        /* Xeon Scalable series: "Intel(R) Xeon(R) Bronze..." */
+        else if (cpu_name[17] == 'B') {
+            return 1;
+        }
+        /* Xeon Scalable series: "Intel(R) Xeon(R) Gold..." */
+        else if (cpu_name[17] == 'G') {
+            /* 61xx */
+            if (cpu_name[22] == '6') {
+                return 2;
+            /* 5122 */
+            } else if (cpu_name[22] == 5 && cpu_name[24] == 2 && cpu_name[25] == 2) {
+                return 2;
+            /* 51xx */
+            } else {
+                return 1;
+            }
+        }
+        /* Xeon W series: "Intel(R) Xeon(R) Processor W-21xx..." */
+        else if (cpu_name[27] == 'W') {
+            /* 2102 or 2104 */
+            if (cpu_name[31] == '0') {
+                return 1;
+            /* 212x and higher */
+            } else {
                 return 2;
             }
-            /* Xeon Scalable series: "Intel(R) Xeon(R) Silver..." */
-            else if (cpu_name[17] == 'S') {
-                return 1;
-            }
-            /* Xeon Scalable series: "Intel(R) Xeon(R) Bronze..." */
-            else if (cpu_name[17] == 'B') {
-                return 1;
-            }
-            /* Xeon Scalable series: "Intel(R) Xeon(R) Gold..." */
-            else if (cpu_name[17] == 'G') {
-                /* 61xx */
-                if (cpu_name[22] == '6') {
-                    return 2;
-                /* 5122 */
-                } else if (cpu_name[22] == 5 && cpu_name[24] == 2 && cpu_name[25] == 2) {
-                    return 2;
-                /* 51xx */
-                } else {
-                    return 1;
-                }
-            }
-            /* Xeon W series: "Intel(R) Xeon(R) Processor W-21xx..." */
-            else if (cpu_name[27] == 'W') {
-                /* 2102 or 2104 */
-                if (cpu_name[31] == '0') {
-                    return 1;
-                /* 212x and higher */
-                } else {
-                    return 2;
-                }
-            }
         }
-        /* If we get here, the part is not supported by the SKX logic */
-        return -1;
     }
-    return 0;
+    /* If we get here, the part is not supported by the SKX logic */
+    return -1;
 }
 
 bool vpu_platinum(void)
 {
-    char cpu_name[48] = {0};
-    get_cpu_name(cpu_name);
+    char cpu_name[32] = {0};
+    get_cpu_name32(cpu_name);
     return (cpu_name[9] == 'X' && cpu_name[17] == 'P');
 }
