@@ -1,11 +1,14 @@
 CC = gcc
-CFLAGS = -g -Wall
+CFLAGS = -g -Wall -O3 -fopenmp
 
-CFLAGS += -DDEBUG
+#CFLAGS += -DDEBUG
 
-all: test.x
+all: test.x time.x
 
 test.x: test.o vpu-count.o
+	$(CC) $(CFLAGS) $^ -o $@
+
+time.x: time.o vpu-count.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 %.o: %.c
