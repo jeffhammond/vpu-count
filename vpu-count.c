@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include <cpuid.h>
 
@@ -10,6 +11,50 @@
 #else
 #define STRSTR(haystack,needle) strstr((haystack),(needle))
 #endif
+
+static void get_arch(bool * skylake)
+{
+    uint32_t eax=0x0, ebx=0x0, ecx=0x0, edx=0x0;
+    __cpuid(0x0, eax, ebx, ecx, edx);
+#ifdef DEBUG
+    printf("0x0: %x,%x,%x,%x\n", eax, ebx, ecx, edx);
+#endif
+    *skylake = (ebx & 0x16);
+}
+
+#if 0
+static void get_avx(bool * avx, bool * fma)
+{
+    uint32_t eax=0x1, ebx=0x0, ecx=0x0, edx=0x0;
+    __cpuid(eax, eax, ebx, ecx, edx);
+#ifdef DEBUG
+    printf("0x1: %x,%x,%x,%x\n", eax, ebx, ecx, edx);
+#endif
+    *avx = (ecx & 1u<<28);
+    *fma = (ecx & 1u<<12);
+}
+#endif
+
+static void get_avx512(bool * knl, bool * skx)
+{
+    uint32_t eax=0x7, ebx=0x0, ecx=0x0, edx=0x0;
+    __cpuid_count(eax, ecx, eax, ebx, ecx, edx);
+#ifdef DEBUG
+    printf("0x7: %x,%x,%x,%x\n", eax, ebx, ecx, edx);
+#endif
+#if 0
+    *avx2     = (ebx & 1u<<5);
+#endif
+    const bool avx512f  = (ebx & 1u<<16);
+    const bool avx512dq = (ebx & 1u<<17);
+    const bool avx512pf = (ebx & 1u<<26);
+    const bool avx512er = (ebx & 1u<<27);
+    const bool avx512cd = (ebx & 1u<<28);
+    const bool avx512bw = (ebx & 1u<<30);
+    const bool avx512vl = (ebx & 1u<<31);
+    *knl = avx512f && avx512cd && avx512pf && avx512er;
+    *skx = avx512f && avx512cd && avx512bw && avx512dq && avx512vl;
+}
 
 static void get_cpu_name(char cpu_name[48])
 {
@@ -61,6 +106,10 @@ int vpu_count(void)
     const char bronze[7]   = "Bronze";
 
     const char * loc;
+
+    bool is_skl, is_knl, is_skx;
+    get_arch(&is_skl);
+    get_avx512(&is_knl, &is_skx);
 
     /* Xeon Phi 72xx aka KNL always has 2 VPU */
     loc = STRSTR(cpu_name, knl);
