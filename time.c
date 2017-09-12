@@ -6,6 +6,7 @@
 int vpu_count();
 bool vpu_avx512();
 int vpu_name();
+bool vpu_platinum();
 
 int main(int argc, char * argv[])
 {
@@ -40,6 +41,14 @@ int main(int argc, char * argv[])
         }
         t1 = omp_get_wtime();
         printf("vpu_name: n=%d, dt=%f us, dt/n=%f us, j=%d\n", n, 1.e6*(t1-t0), 1.e6*(t1-t0)/n, j);
+
+        j = 0;
+        t0 = omp_get_wtime();
+        for (int i=0; i<n; i++) {
+            j += (int)vpu_platinum();
+        }
+        t1 = omp_get_wtime();
+        printf("vpu_platinum: n=%d, dt=%f us, dt/n=%f us, j=%d\n", n, 1.e6*(t1-t0), 1.e6*(t1-t0)/n, j);
     }
     return 0;
 }

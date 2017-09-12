@@ -259,3 +259,10 @@ int vpu_name(void)
     }
     return 0;
 }
+
+bool vpu_platinum(void)
+{
+    char cpu_name[48] = {0};
+    get_cpu_name(cpu_name);
+    return (cpu_name[9] == 'X' && cpu_name[17] == 'P');
+}
