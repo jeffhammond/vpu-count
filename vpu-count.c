@@ -1,55 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <string.h>
 #include <stdbool.h>
 
 #include <cpuid.h>
-
-#ifdef USE_STRNSTR
-#define STRSTR(haystack,needle) strnstr((haystack),(needle),sizeof(haystack))
-#else
-#define STRSTR(haystack,needle) strstr((haystack),(needle))
-#endif
-
-static bool is_skl(void)
-{
-    uint32_t eax=0x0, ebx=0x0, ecx=0x0, edx=0x0;
-    __cpuid(0x0, eax, ebx, ecx, edx);
-#ifdef DEBUG
-    printf("0x0: %x,%x,%x,%x\n", eax, ebx, ecx, edx);
-#endif
-    return (ebx & 0x16);
-}
-
-static bool is_knl(void)
-{
-    uint32_t eax=0x7, ebx=0x0, ecx=0x0, edx=0x0;
-    __cpuid_count(eax, ecx, eax, ebx, ecx, edx);
-#ifdef DEBUG
-    printf("0x7: %x,%x,%x,%x\n", eax, ebx, ecx, edx);
-#endif
-    const bool avx512f  = (ebx & 1u<<16);
-    const bool avx512pf = (ebx & 1u<<26);
-    const bool avx512er = (ebx & 1u<<27);
-    const bool avx512cd = (ebx & 1u<<28);
-    return (avx512f && avx512cd && avx512pf && avx512er);
-}
-
-static bool is_skx(void)
-{
-    uint32_t eax=0x7, ebx=0x0, ecx=0x0, edx=0x0;
-    __cpuid_count(eax, ecx, eax, ebx, ecx, edx);
-#ifdef DEBUG
-    printf("0x7: %x,%x,%x,%x\n", eax, ebx, ecx, edx);
-#endif
-    const bool avx512f  = (ebx & 1u<<16);
-    const bool avx512dq = (ebx & 1u<<17);
-    const bool avx512cd = (ebx & 1u<<28);
-    const bool avx512bw = (ebx & 1u<<30);
-    const bool avx512vl = (ebx & 1u<<31);
-    return (avx512f && avx512cd && avx512bw && avx512dq && avx512vl);
-}
 
 static void get_cpu_name(char cpu_name[48])
 {
@@ -82,124 +36,100 @@ static void get_cpu_name(char cpu_name[48])
 
 int vpu_count(void)
 {
-    /* KNL has 2 VPUs */
-    if (is_knl()) return 2;
-    /* FIXME add KNM */
-    /* if not KNL and not SKL, does not have AVX-512 */
-    if (!is_skl()) return 0;
-
-    if (is_skx()) {
-
-    char cpu_name[48] = {0};
-
-    get_cpu_name(cpu_name);
+    uint32_t leaf7[4] = {0x7,0x0,0x0,0x0};
+    __cpuid_count(leaf7[0], leaf7[2], leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
 #ifdef DEBUG
-    printf("cpu_name = %s\n", cpu_name);
+    printf("0x7: %x,%x,%x,%x\n", leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
 #endif
 
-    const char skx[17]     = "Intel(R) Xeon(R)";
-    const char skw[30]     = "Intel(R) Xeon(R) Processor W-";
-    const char knl[29]     = "Intel(R) Xeon Phi(TM) CPU 72";
-    /* Intel(R) Core(TM) i7-5960X CPU */
-    const char i7[22]      = "Intel(R) Core(TM) i7-";
-    const char i9[22]      = "Intel(R) Core(TM) i9-";
-    const char platinum[9] = "Platinum";
-    const char gold[5]     = "Gold";
-    const char silver[7]   = "Silver";
-    const char bronze[7]   = "Bronze";
-
-    const char * loc;
-
-    bool is_skl, is_knl, is_skx;
-    get_arch(&is_skl);
-    get_avx512(&is_knl, &is_skx);
-
-    /* Xeon Phi 72xx aka KNL always has 2 VPU */
-    loc = STRSTR(cpu_name, knl);
-    if (loc != NULL) {
+    bool knl = (leaf7[1] & 1u<<16) && /* AVX-512F  */
+               (leaf7[1] & 1u<<28) && /* AVX-512CD */
+               (leaf7[1] & 1u<<26) && /* AVX-512PF */
+               (leaf7[1] & 1u<<27);   /* AVX-512ER */
+    if (knl) {
+#ifdef DEBUG
+        printf("KNL\n");
+#endif
         return 2;
     }
 
-    /* Skylake-X series */
-    loc = STRSTR(cpu_name, knl);
-    if (loc != NULL) {
+    /* KNM is a superset of KNL, at least architecturally */
+    bool knm = knl && (leaf7[2] & 1u<<14); /* AVX-512VPOPCNTDQ */
+    if (knm) {
+#ifdef DEBUG
+        printf("KNM\n");
+#endif
         return 2;
     }
 
-    /* If it is not Xeon, it doesn't have AVX-512 */
-    loc = STRSTR(cpu_name, skx);
-    if (loc == NULL) {
-        return 0;
-    }
+    /* Architecture, so we know it is SKL and not something later... */
+    uint32_t leaf0[4]={0x0,0x0,0x0,0x0};
+    __cpuid(0x0, leaf0[0], leaf0[1], leaf0[2], leaf0[3]);
+#ifdef DEBUG
+    printf("0x0: %x,%x,%x,%x\n", leaf0[0], leaf0[1], leaf0[2], leaf0[3]);
+#endif
 
-    loc = STRSTR(cpu_name, platinum);
-    if (loc != NULL) {
-        char skustr[5] = {0};
-        memcpy(&skustr,loc+sizeof(platinum),4);
-        const int skunum = atoi(skustr);
-        if (8199 >= skunum && skunum >= 8100) {
+    bool skylake_avx512 = (leaf0[1] & 0x16)   && /* Skylake   */
+                          (leaf7[1] & 1u<<16) && /* AVX-512F  */
+                          (leaf7[1] & 1u<<17) && /* AVX-512DQ */
+                          (leaf7[1] & 1u<<28) && /* AVX-512CD */
+                          (leaf7[1] & 1u<<30) && /* AVX-512BW */
+                          (leaf7[1] & 1u<<31);   /* AVX-512VL */
+
+    if (skylake_avx512) {
+#ifdef DEBUG
+        printf("SKX\n");
+#endif
+        char cpu_name[48] = {0};
+        get_cpu_name(cpu_name);
+#ifdef DEBUG
+        printf("cpu_name = %s\n", cpu_name);
+#endif
+
+#ifdef DEBUG
+        printf("cpu_name[9] = %c\n", cpu_name[9]);
+#endif
+        /* Skylake-X series:
+         * "Intel(R) Core (TM)..." */
+        if (cpu_name[9] == 'C') {
+            /* FIXME need to figure out the answer here... */
+            return 911;
+        }
+
+#ifdef DEBUG
+        printf("cpu_name[17] = %c\n", cpu_name[17]);
+#endif
+        /* Xeon Scalable series: "Intel(R) Xeon(R) Platinum..." */
+        if (cpu_name[17] == 'P') {
             return 2;
-        } else {
-            printf("%s %d does not exist.\n", platinum, skunum);
-        }
-    }
-
-    loc = STRSTR(cpu_name, gold);
-    if (loc != NULL) {
-        char skustr[5] = {0};
-        memcpy(&skustr,loc+sizeof(gold),4);
-        const int skunum = atoi(skustr);
-        if (skunum == 5122) {
-            /* https://ark.intel.com/products/120475/Intel-Xeon-Gold-5122-Processor-16_5M-Cache-3_60-GHz */
-            return 2;
-        } else if (6199 >= skunum && skunum >= 6100) {
-            return 2;
-        } else if (5199 >= skunum && skunum >= 5100) {
+        /* Xeon Scalable series: "Intel(R) Xeon(R) Silver..." */
+        } else if (cpu_name[17] == 'S') {
             return 1;
-        } else {
-            printf("%s %d does not exist.\n", gold, skunum);
-        }
-    }
-
-    loc = STRSTR(cpu_name, silver);
-    if (loc != NULL) {
-        char skustr[5] = {0};
-        memcpy(&skustr,loc+sizeof(silver),4);
-        const int skunum = atoi(skustr);
-        if (4199 >= skunum && skunum >= 4100) {
+        /* Xeon Scalable series: "Intel(R) Xeon(R) Bronze..." */
+        } else if (cpu_name[17] == 'B') {
             return 1;
-        } else {
-            printf("%s %d does not exist.\n", silver, skunum);
+        /* Xeon Scalable series: "Intel(R) Xeon(R) Gold..." */
+        } else if (cpu_name[17] == 'G') {
+            /* 61xx */
+            if (cpu_name[22] == '6') {
+                return 2;
+            /* 5122 */
+            } else if (cpu_name[22] == 5 && cpu_name[24] == 2 && cpu_name[25] == 2) {
+                return 2;
+            /* 51xx */
+            } else {
+                return 1;
+            }
+        /* Xeon W series: "Intel(R) Xeon(R) Processor W-21xx..." */
+        } else if (cpu_name[27] == 'W') {
+            /* 2102 or 2104 */
+            if (cpu_name[31] == '0') {
+                return 1;
+            /* 212x and higher */
+            } else {
+                return 2;
+            }
         }
     }
-
-    loc = STRSTR(cpu_name, bronze);
-    if (loc != NULL) {
-        char skustr[5] = {0};
-        memcpy(&skustr,loc+sizeof(bronze),4);
-        const int skunum = atoi(skustr);
-        if (3199 >= skunum && skunum >= 3100) {
-            return 1;
-        } else {
-            printf("%s %d does not exist.\n", bronze, skunum);
-        }
-    }
-
-    /* Skylake-W series */
-    loc = STRSTR(cpu_name, skw);
-    if (loc != NULL) {
-        char skustr[5] = {0};
-        memcpy(&skustr,loc+sizeof(skw),4);
-        const int skunum = atoi(skustr);
-        if (2199 >= skunum && skunum >= 2120) {
-            return 2;
-        } else if (2120 > skunum && skunum >= 2100) {
-            return 1;
-        } else {
-            printf("%s%d does not exist.\n", skw, skunum);
-        }
-    }
-
-    }
-    return 0;
+    return -1;
 }
