@@ -12,48 +12,43 @@
 #define STRSTR(haystack,needle) strstr((haystack),(needle))
 #endif
 
-static void get_arch(bool * skylake)
+static bool is_skl(void)
 {
     uint32_t eax=0x0, ebx=0x0, ecx=0x0, edx=0x0;
     __cpuid(0x0, eax, ebx, ecx, edx);
 #ifdef DEBUG
     printf("0x0: %x,%x,%x,%x\n", eax, ebx, ecx, edx);
 #endif
-    *skylake = (ebx & 0x16);
+    return (ebx & 0x16);
 }
 
-#if 0
-static void get_avx(bool * avx, bool * fma)
-{
-    uint32_t eax=0x1, ebx=0x0, ecx=0x0, edx=0x0;
-    __cpuid(eax, eax, ebx, ecx, edx);
-#ifdef DEBUG
-    printf("0x1: %x,%x,%x,%x\n", eax, ebx, ecx, edx);
-#endif
-    *avx = (ecx & 1u<<28);
-    *fma = (ecx & 1u<<12);
-}
-#endif
-
-static void get_avx512(bool * knl, bool * skx)
+static bool is_knl(void)
 {
     uint32_t eax=0x7, ebx=0x0, ecx=0x0, edx=0x0;
     __cpuid_count(eax, ecx, eax, ebx, ecx, edx);
 #ifdef DEBUG
     printf("0x7: %x,%x,%x,%x\n", eax, ebx, ecx, edx);
 #endif
-#if 0
-    *avx2     = (ebx & 1u<<5);
-#endif
     const bool avx512f  = (ebx & 1u<<16);
-    const bool avx512dq = (ebx & 1u<<17);
     const bool avx512pf = (ebx & 1u<<26);
     const bool avx512er = (ebx & 1u<<27);
     const bool avx512cd = (ebx & 1u<<28);
+    return (avx512f && avx512cd && avx512pf && avx512er);
+}
+
+static bool is_skx(void)
+{
+    uint32_t eax=0x7, ebx=0x0, ecx=0x0, edx=0x0;
+    __cpuid_count(eax, ecx, eax, ebx, ecx, edx);
+#ifdef DEBUG
+    printf("0x7: %x,%x,%x,%x\n", eax, ebx, ecx, edx);
+#endif
+    const bool avx512f  = (ebx & 1u<<16);
+    const bool avx512dq = (ebx & 1u<<17);
+    const bool avx512cd = (ebx & 1u<<28);
     const bool avx512bw = (ebx & 1u<<30);
     const bool avx512vl = (ebx & 1u<<31);
-    *knl = avx512f && avx512cd && avx512pf && avx512er;
-    *skx = avx512f && avx512cd && avx512bw && avx512dq && avx512vl;
+    return (avx512f && avx512cd && avx512bw && avx512dq && avx512vl);
 }
 
 static void get_cpu_name(char cpu_name[48])
@@ -87,6 +82,14 @@ static void get_cpu_name(char cpu_name[48])
 
 int vpu_count(void)
 {
+    /* KNL has 2 VPUs */
+    if (is_knl()) return 2;
+    /* FIXME add KNM */
+    /* if not KNL and not SKL, does not have AVX-512 */
+    if (!is_skl()) return 0;
+
+    if (is_skx()) {
+
     char cpu_name[48] = {0};
 
     get_cpu_name(cpu_name);
@@ -197,6 +200,6 @@ int vpu_count(void)
         }
     }
 
-
+    }
     return 0;
 }
