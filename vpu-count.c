@@ -50,7 +50,11 @@ int vpu_count(void)
 #endif
 
     const char skx[17]     = "Intel(R) Xeon(R)";
+    const char skw[30]     = "Intel(R) Xeon(R) Processor W-";
     const char knl[29]     = "Intel(R) Xeon Phi(TM) CPU 72";
+    /* Intel(R) Core(TM) i7-5960X CPU */
+    const char i7[22]      = "Intel(R) Core(TM) i7-";
+    const char i9[22]      = "Intel(R) Core(TM) i9-";
     const char platinum[9] = "Platinum";
     const char gold[5]     = "Gold";
     const char silver[7]   = "Silver";
@@ -64,7 +68,11 @@ int vpu_count(void)
         return 2;
     }
 
-    /* FIXME: Add Core i9 X-series... */
+    /* Skylake-X series */
+    loc = STRSTR(cpu_name, knl);
+    if (loc != NULL) {
+        return 2;
+    }
 
     /* If it is not Xeon, it doesn't have AVX-512 */
     loc = STRSTR(cpu_name, skx);
@@ -124,6 +132,22 @@ int vpu_count(void)
             printf("%s %d does not exist.\n", bronze, skunum);
         }
     }
+
+    /* Skylake-W series */
+    loc = STRSTR(cpu_name, skw);
+    if (loc != NULL) {
+        char skustr[5] = {0};
+        memcpy(&skustr,loc+sizeof(skw),4);
+        const int skunum = atoi(skustr);
+        if (2199 >= skunum && skunum >= 2120) {
+            return 2;
+        } else if (2120 > skunum && skunum >= 2100) {
+            return 1;
+        } else {
+            printf("%s%d does not exist.\n", skw, skunum);
+        }
+    }
+
 
     return 0;
 }
