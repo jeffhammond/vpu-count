@@ -10,7 +10,7 @@ bool vpu_platinum();
 
 int main(int argc, char * argv[])
 {
-    int n = (argc>1) ? atoi(argv[1]) : 1000000;
+    int n = (argc>1) ? atoi(argv[1]) : 1000;
 
     vpu_count();
 
