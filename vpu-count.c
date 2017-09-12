@@ -65,6 +65,7 @@ void get_cpu_name48(char cpu_name[48])
 
 int vpu_count(void)
 {
+#if 0
     /* Architecture, so we know it is SKL and not something later... */
     uint32_t leaf0[4]={0x0,0x0,0x0,0x0};
     __cpuid(leaf0[0], leaf0[0], leaf0[1], leaf0[2], leaf0[3]);
@@ -72,11 +73,10 @@ int vpu_count(void)
     printf("0x0: %x,%x,%x,%x\n", leaf0[0], leaf0[1], leaf0[2], leaf0[3]);
 #endif
 
-    // uint32_t max    = leaf0[0];
-    // uint32_t vendor = leaf0[1];
     bool is_intel   = (leaf0[1] == 0x756e6547) && (leaf0[2] == 0x6c65746e) && (leaf0[3] == 0x49656e69);
 #ifdef DEBUG
     printf("Intel? %s\n", is_intel ? "yes" : "no");
+#endif
 #endif
 
 #if 1
@@ -86,31 +86,35 @@ int vpu_count(void)
 #ifdef DEBUG
     printf("0x1: %x,%x,%x,%x\n", leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
 #endif
-    printf("signature:  %#08x\n", (leaf1[0]) );
 
-    uint32_t stepping  = (leaf1[0]      ) & 0x0f;
+    //uint32_t stepping  = (leaf1[0]      ) & 0x0f;
     uint32_t model     = (leaf1[0] >>  4) & 0x0f;
     uint32_t family    = (leaf1[0] >>  8) & 0x0f;
-    uint32_t proctype  = (leaf1[0] >> 12) & 0x03;
+    //uint32_t proctype  = (leaf1[0] >> 12) & 0x03;
     uint32_t xmodel    = (leaf1[0] >> 16) & 0x0f;
-    uint32_t xfamily   = (leaf1[0] >> 20) & 0xff;
+    //uint32_t xfamily   = (leaf1[0] >> 20) & 0xff;
 
     if (family == 0x06) {
         model  += (xmodel << 4);
     }
     else if (family == 0x0f) {
-        family += xfamily;
+        //family += xfamily;
         model  += (xmodel << 4);
     }
+    bool skylake_avx512 = (model == 0x55);
 
-    printf("stepping:   %#04x=%d\n", stepping, stepping);
+#ifdef DEBUG
+    printf("signature:  %#08x\n", (leaf1[0]) );
+    //printf("stepping:   %#04x=%d\n", stepping, stepping);
     printf("model:      %#04x=%d\n", model, model);
     printf("family:     %#04x=%d\n", family, family);
-    printf("proc type:  %#04x=%d\n", proctype, proctype);
+    //printf("proc type:  %#04x=%d\n", proctype, proctype);
     printf("ext model:  %#04x=%d\n", xmodel, xmodel);
-    printf("ext family: %#08x=%d\n", xfamily, xfamily);
+    //printf("ext family: %#08x=%d\n", xfamily, xfamily);
+#endif
 #endif
 
+#if 0
     uint32_t leaf7[4] = {0x7,0x0,0x0,0x0};
     __cpuid_count(leaf7[0], leaf7[2], leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
 #ifdef DEBUG
@@ -140,6 +144,7 @@ int vpu_count(void)
                           (leaf7[1] & 1u<<28) && /* AVX-512CD */
                           (leaf7[1] & 1u<<30) && /* AVX-512BW */
                           (leaf7[1] & 1u<<31);   /* AVX-512VL */
+#endif
 
     if (skylake_avx512) {
 #ifdef DEBUG
