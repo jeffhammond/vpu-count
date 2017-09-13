@@ -17,8 +17,8 @@ static uint64_t rdtsc(void)
 uint64_t fma_shuffle_tpt(uint64_t loop_cnt)
 {
     uint64_t loops = loop_cnt;
-    double one_vec[8] __attribute__((aligned(64))) = {1, 1, 1, 1,1, 1, 1, 1};
-    int shuf_vec[16] __attribute__((aligned(64))) = {0, 1, 2, 3,4, 5, 6, 7,8, 9, 10, 11,12, 13, 14, 15};
+    __declspec(align(64)) double one_vec[8] = {1, 1, 1, 1,1, 1, 1, 1};
+    __declspec(align(64)) int shuf_vec[16] = {0, 1, 2, 3,4, 5, 6, 7,8, 9, 10, 11,12, 13, 14, 15};
 
     __asm {
         vmovups zmm0, [one_vec]
@@ -79,7 +79,7 @@ uint64_t fma_shuffle_tpt(uint64_t loop_cnt)
 
 uint64_t fma_only_tpt(int loop_cnt) {
     uint64_t loops = loop_cnt;
-    double one_vec[8] __attribute__((aligned(64))) = {1, 1, 1, 1,1, 1, 1, 1};
+    __declspec(align(64)) double one_vec[8] = {1, 1, 1, 1, 1, 1, 1, 1};
     __asm {
         vmovups zmm0, [one_vec]
         vmovups zmm1, [one_vec]
