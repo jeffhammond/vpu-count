@@ -63,25 +63,26 @@ void get_cpu_name48(char cpu_name[48])
 #endif
 }
 
-int vpu_count(void)
+void get_leaf0(uint32_t leaf0[4], bool * is_intel, bool * skylake)
 {
-#if 0
-    /* Architecture, so we know it is SKL and not something later... */
-    uint32_t leaf0[4]={0x0,0x0,0x0,0x0};
     __cpuid(leaf0[0], leaf0[0], leaf0[1], leaf0[2], leaf0[3]);
 #ifdef DEBUG
     printf("0x0: %x,%x,%x,%x\n", leaf0[0], leaf0[1], leaf0[2], leaf0[3]);
 #endif
 
-    bool is_intel   = (leaf0[1] == 0x756e6547) && (leaf0[2] == 0x6c65746e) && (leaf0[3] == 0x49656e69);
+    *is_intel = (leaf0[1] == 0x756e6547) && (leaf0[2] == 0x6c65746e) && (leaf0[3] == 0x49656e69);
 #ifdef DEBUG
-    printf("Intel? %s\n", is_intel ? "yes" : "no");
-#endif
+    printf("Intel? %s\n", *is_intel ? "yes" : "no");
 #endif
 
-#if 1
-    /* Model, Family, etc. */
-    uint32_t leaf1[4]={0x1,0x0,0x0,0x0};
+    *skylake = (leaf0[1] & 0x16);
+#ifdef DEBUG
+    printf("Skylake? %s\n", *skylake ? "yes" : "no");
+#endif
+}
+
+void get_leaf1(uint32_t leaf1[4], bool * skylake_avx512)
+{
     __cpuid(leaf1[0], leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
 #ifdef DEBUG
     printf("0x1: %x,%x,%x,%x\n", leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
@@ -98,10 +99,10 @@ int vpu_count(void)
         model  += (xmodel << 4);
     }
     else if (family == 0x0f) {
-        //family += xfamily;
         model  += (xmodel << 4);
+        //family += xfamily;
     }
-    bool skylake_avx512 = (model == 0x55);
+    *skylake_avx512 = (model == 0x55);
 
 #ifdef DEBUG
     printf("signature:  %#08x\n", (leaf1[0]) );
@@ -112,43 +113,65 @@ int vpu_count(void)
     printf("ext model:  %#04x=%d\n", xmodel, xmodel);
     //printf("ext family: %#08x=%d\n", xfamily, xfamily);
 #endif
-#endif
+}
 
-#if 0
-    uint32_t leaf7[4] = {0x7,0x0,0x0,0x0};
+void get_leaf7(uint32_t leaf7[4], bool * xeon_avx512, bool * knl, bool * knm)
+{
     __cpuid_count(leaf7[0], leaf7[2], leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
 #ifdef DEBUG
     printf("0x7: %x,%x,%x,%x\n", leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
 #endif
 
-#ifdef DETECT_XEON_PHI
-    bool knl = (leaf7[1] & 1u<<16) && /* AVX-512F  */
-               (leaf7[1] & 1u<<28) && /* AVX-512CD */
-               (leaf7[1] & 1u<<26) && /* AVX-512PF */
-               (leaf7[1] & 1u<<27);   /* AVX-512ER */
+    *knl = (leaf7[1] & 1u<<16) && /* AVX-512F  */
+           (leaf7[1] & 1u<<28) && /* AVX-512CD */
+           (leaf7[1] & 1u<<26) && /* AVX-512PF */
+           (leaf7[1] & 1u<<27);   /* AVX-512ER */
+
     /* KNM is a superset of KNL, at least architecturally */
-    bool knm = knl && (leaf7[2] & 1u<<14); /* AVX-512VPOPCNTDQ */
+    *knm = *knl && (leaf7[2] & 1u<<14); /* AVX-512VPOPCNTDQ */
 
-    if (knl || knm) {
+    *xeon_avx512 = (leaf7[1] & 1u<<16) && /* AVX-512F  */
+                   (leaf7[1] & 1u<<17) && /* AVX-512DQ */
+                   (leaf7[1] & 1u<<28) && /* AVX-512CD */
+                   (leaf7[1] & 1u<<30) && /* AVX-512BW */
+                   (leaf7[1] & 1u<<31);   /* AVX-512VL */
+
 #ifdef DEBUG
-        if (knm) printf("KNM\n");
-        else     printf("KNL\n");
+    const char * name = "None";
+    if (*xeon_avx512) name = "Xeon";
+    else if (*knm) name = "KNM";
+    else if (*knl) name = "KNL";
+    printf("AVX-512: %s\n", name);
 #endif
-        return 2;
-    }
-#endif
+}
 
-    bool skylake_avx512 = (leaf0[1] & 0x16)   && /* Skylake   */
-                          (leaf7[1] & 1u<<16) && /* AVX-512F  */
-                          (leaf7[1] & 1u<<17) && /* AVX-512DQ */
-                          (leaf7[1] & 1u<<28) && /* AVX-512CD */
-                          (leaf7[1] & 1u<<30) && /* AVX-512BW */
-                          (leaf7[1] & 1u<<31);   /* AVX-512VL */
+int vpu_count(void)
+{
+    /* We can either detect Skylake AVX-512 directly from leaf1 or detect it
+     * via Skylake arch from leaf0 plus AVX-512 features from leaf7.
+     * Clearly, the former is simpler. */
+    bool skylake_avx512 = false;
+#if 1
+    /* leaf 1 - Model, Family, etc. */
+    uint32_t leaf1[4]={0x1,0x0,0x0,0x0};
+    get_leaf1(leaf1, &skylake_avx512);
+#else
+    /* leaf 0 - Architecture */
+    bool is_intel = false, skylake = false;
+    uint32_t leaf0[4]={0x0,0x0,0x0,0x0};
+    get_leaf0(leaf0, &is_intel, &skylake);
+
+    /* leaf 7 - AVX-512 features */
+    bool xeon_avx512 = false, knl = false, knm = false;
+    uint32_t leaf7[4]={0x7,0x0,0x0,0x0};
+    get_leaf7(leaf7, &xeon_avx512, &knl, &knm);
+
+    skylake_avx512 = skylake && xeon_avx512;
 #endif
 
     if (skylake_avx512) {
 #ifdef DEBUG
-        printf("SKX\n");
+        printf("Skylake AVX-512 detected...\n");
 #endif
         char cpu_name[32] = {0};
         get_cpu_name32(cpu_name);
@@ -157,16 +180,11 @@ int vpu_count(void)
         printf("cpu_name = %s\n", cpu_name);
         printf("cpu_name[9] = %c\n", cpu_name[9]);
         printf("cpu_name[17] = %c\n", cpu_name[17]);
-#if 0
-        char letters[8] = {'C','P','G','S','B','W'};
-        for (int i=0; i<6; i++) printf("%d,%d\n",i,(int)letters[i]);
-#endif
 #endif
 
         /* Skylake-X series: * "Intel(R) Core (TM)..." */
         if (cpu_name[9] == 'C') {
-            /* FIXME need to figure out the answer here... */
-            return 911;
+            return 2;
         }
         else if (cpu_name[9] == 'X') {
             /* Xeon Scalable series: "Intel(R) Xeon(R) Platinum..." */
@@ -211,37 +229,20 @@ int vpu_count(void)
     return 0;
 }
 
+bool vpu_platinum(void)
+{
+    char cpu_name[32] = {0};
+    get_cpu_name32(cpu_name);
+    return (cpu_name[9] == 'X' && cpu_name[17] == 'P');
+}
+
 bool vpu_avx512(void)
 {
-    uint32_t leaf7[4] = {0x7,0x0,0x0,0x0};
-    __cpuid_count(leaf7[0], leaf7[2], leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
-#ifdef DEBUG
-    printf("0x7: %x,%x,%x,%x\n", leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
-#endif
-
-#ifdef DETECT_XEON_PHI
-    bool knl = (leaf7[1] & 1u<<16) && /* AVX-512F  */
-               (leaf7[1] & 1u<<28) && /* AVX-512CD */
-               (leaf7[1] & 1u<<26) && /* AVX-512PF */
-               (leaf7[1] & 1u<<27);   /* AVX-512ER */
-    /* KNM is a superset of KNL, at least architecturally */
-    bool knm = knl && (leaf7[2] & 1u<<14); /* AVX-512VPOPCNTDQ */
-
-    if (knl || knm) {
-#ifdef DEBUG
-        if (knm) printf("KNM\n");
-        else     printf("KNL\n");
-#endif
-        return 2;
-    }
-#endif
-
-    /* Architecture, so we know it is SKL and not something later... */
     uint32_t leaf0[4]={0x0,0x0,0x0,0x0};
     __cpuid(leaf0[0], leaf0[0], leaf0[1], leaf0[2], leaf0[3]);
-#ifdef DEBUG
-    printf("0x0: %x,%x,%x,%x\n", leaf0[0], leaf0[1], leaf0[2], leaf0[3]);
-#endif
+
+    uint32_t leaf7[4] = {0x7,0x0,0x0,0x0};
+    __cpuid_count(leaf7[0], leaf7[2], leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
 
     bool skylake_avx512 = (leaf0[1] & 0x16)   && /* Skylake   */
                           (leaf7[1] & 1u<<16) && /* AVX-512F  */
@@ -302,11 +303,4 @@ int vpu_name(void)
     }
     /* If we get here, the part is not supported by the SKX logic */
     return -1;
-}
-
-bool vpu_platinum(void)
-{
-    char cpu_name[32] = {0};
-    get_cpu_name32(cpu_name);
-    return (cpu_name[9] == 'X' && cpu_name[17] == 'P');
 }
