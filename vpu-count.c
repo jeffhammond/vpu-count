@@ -5,6 +5,16 @@
 
 #include <cpuid.h>
 
+#if (__STDC_VERSION__ < 199901L)
+#error You need to enable C99 or remove vararg debug printing by hand.
+#endif
+
+#ifdef DEBUG
+#define PDEBUG(fmt, ...) do { printf(fmt, __VA_ARGS__); } while (0)
+#else
+#define PDEBUG(fmt, ...)
+#endif
+
 void get_cpu_name32(char cpu_name[32])
 {
     uint32_t eax, ebx, ecx, edx;
@@ -32,9 +42,7 @@ void get_cpu_name48(char cpu_name[48])
     *(uint32_t *)&cpu_name[8]  = ecx;
     *(uint32_t *)&cpu_name[12] = edx;
 
-#ifdef DEBUG
-    printf("%x %x %x %x\n", eax, ebx, ecx, edx);
-#endif
+    PDEBUG("%x %x %x %x\n", eax, ebx, ecx, edx);
 
     __cpuid(0x80000003u, eax, ebx, ecx, edx);
     *(uint32_t *)&cpu_name[16+0]  = eax;
@@ -42,9 +50,7 @@ void get_cpu_name48(char cpu_name[48])
     *(uint32_t *)&cpu_name[16+8]  = ecx;
     *(uint32_t *)&cpu_name[16+12] = edx;
 
-#ifdef DEBUG
-    printf("%x %x %x %x\n", eax, ebx, ecx, edx);
-#endif
+    PDEBUG("%x %x %x %x\n", eax, ebx, ecx, edx);
 
     __cpuid(0x80000004u, eax, ebx, ecx, edx);
     *(uint32_t *)&cpu_name[32+0]  = eax;
@@ -52,41 +58,29 @@ void get_cpu_name48(char cpu_name[48])
     *(uint32_t *)&cpu_name[32+8]  = ecx;
     *(uint32_t *)&cpu_name[32+12] = edx;
 
-#ifdef DEBUG
-    printf("%x %x %x %x\n", eax, ebx, ecx, edx);
-#endif
+    PDEBUG("%x %x %x %x\n", eax, ebx, ecx, edx);
 
-#ifdef DEBUG
-    printf("0x80000002u: \"%.*s\"\n", 16, &cpu_name[0]);
-    printf("0x80000003u: \"%.*s\"\n", 16, &cpu_name[16]);
-    printf("0x80000004u: \"%.*s\"\n", 16, &cpu_name[32]);
-#endif
+    PDEBUG("0x80000002u: \"%.*s\"\n", 16, &cpu_name[0]);
+    PDEBUG("0x80000003u: \"%.*s\"\n", 16, &cpu_name[16]);
+    PDEBUG("0x80000004u: \"%.*s\"\n", 16, &cpu_name[32]);
 }
 
 void get_leaf0(uint32_t leaf0[4], bool * is_intel, bool * skylake)
 {
     __cpuid(leaf0[0], leaf0[0], leaf0[1], leaf0[2], leaf0[3]);
-#ifdef DEBUG
-    printf("0x0: %x,%x,%x,%x\n", leaf0[0], leaf0[1], leaf0[2], leaf0[3]);
-#endif
+    PDEBUG("0x0: %x,%x,%x,%x\n", leaf0[0], leaf0[1], leaf0[2], leaf0[3]);
 
     *is_intel = (leaf0[1] == 0x756e6547) && (leaf0[2] == 0x6c65746e) && (leaf0[3] == 0x49656e69);
-#ifdef DEBUG
-    printf("Intel? %s\n", *is_intel ? "yes" : "no");
-#endif
+    PDEBUG("Intel? %s\n", *is_intel ? "yes" : "no");
 
     *skylake = (leaf0[1] & 0x16);
-#ifdef DEBUG
-    printf("Skylake? %s\n", *skylake ? "yes" : "no");
-#endif
+    PDEBUG("Skylake? %s\n", *skylake ? "yes" : "no");
 }
 
 void get_leaf1(uint32_t leaf1[4], bool * skylake_avx512)
 {
     __cpuid(leaf1[0], leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
-#ifdef DEBUG
-    printf("0x1: %x,%x,%x,%x\n", leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
-#endif
+    PDEBUG("0x1: %x,%x,%x,%x\n", leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
 
     //uint32_t stepping  = (leaf1[0]      ) & 0x0f;
     uint32_t model     = (leaf1[0] >>  4) & 0x0f;
@@ -104,23 +98,19 @@ void get_leaf1(uint32_t leaf1[4], bool * skylake_avx512)
     }
     *skylake_avx512 = (model == 0x55);
 
-#ifdef DEBUG
-    printf("signature:  %#08x\n", (leaf1[0]) );
-    //printf("stepping:   %#04x=%d\n", stepping, stepping);
-    printf("model:      %#04x=%d\n", model, model);
-    printf("family:     %#04x=%d\n", family, family);
-    //printf("proc type:  %#04x=%d\n", proctype, proctype);
-    printf("ext model:  %#04x=%d\n", xmodel, xmodel);
-    //printf("ext family: %#08x=%d\n", xfamily, xfamily);
-#endif
+    PDEBUG("signature:  %#08x\n", (leaf1[0]) );
+    //PDEBUG("stepping:   %#04x=%d\n", stepping, stepping);
+    PDEBUG("model:      %#04x=%d\n", model, model);
+    PDEBUG("family:     %#04x=%d\n", family, family);
+    //PDEBUG("proc type:  %#04x=%d\n", proctype, proctype);
+    PDEBUG("ext model:  %#04x=%d\n", xmodel, xmodel);
+    //PDEBUG("ext family: %#08x=%d\n", xfamily, xfamily);
 }
 
 void get_leaf7(uint32_t leaf7[4], bool * xeon_avx512, bool * knl, bool * knm)
 {
     __cpuid_count(leaf7[0], leaf7[2], leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
-#ifdef DEBUG
-    printf("0x7: %x,%x,%x,%x\n", leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
-#endif
+    PDEBUG("0x7: %x,%x,%x,%x\n", leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
 
     *knl = (leaf7[1] & 1u<<16) && /* AVX-512F  */
            (leaf7[1] & 1u<<28) && /* AVX-512CD */
@@ -141,7 +131,7 @@ void get_leaf7(uint32_t leaf7[4], bool * xeon_avx512, bool * knl, bool * knm)
     if (*xeon_avx512) name = "Xeon";
     else if (*knm) name = "KNM";
     else if (*knl) name = "KNL";
-    printf("AVX-512: %s\n", name);
+    PDEBUG("AVX-512: %s\n", name);
 #endif
 }
 
@@ -170,17 +160,13 @@ int vpu_count(void)
 #endif
 
     if (skylake_avx512) {
-#ifdef DEBUG
-        printf("Skylake AVX-512 detected...\n");
-#endif
+        PDEBUG("Skylake AVX-512 detected...\n");
         char cpu_name[32] = {0};
         get_cpu_name32(cpu_name);
 
-#ifdef DEBUG
-        printf("cpu_name = %s\n", cpu_name);
-        printf("cpu_name[9] = %c\n", cpu_name[9]);
-        printf("cpu_name[17] = %c\n", cpu_name[17]);
-#endif
+        PDEBUG("cpu_name = %s\n", cpu_name);
+        PDEBUG("cpu_name[9] = %c\n", cpu_name[9]);
+        PDEBUG("cpu_name[17] = %c\n", cpu_name[17]);
 
         /* Skylake-X series: * "Intel(R) Core (TM)..." */
         if (cpu_name[9] == 'C') {
