@@ -1,3 +1,36 @@
+// This code was extracted from https://software.intel.com/sites/default/files/managed/9e/bc/64-ia-32-architectures-optimization-manual.pdf,
+// which contains the following statement:
+//
+// Intel technologies features and benefits depend on system configuration and may require enabled hardware, software, or service activation.
+// Learn more at intel.com, or from the OEM or retailer.
+//
+// No computer system can be absolutely secure. Intel does not assume any liability for lost or stolen data or systems or any damages
+// resulting from such losses.
+//
+// You may not use or facilitate the use of this document in connection with any infringement or other legal analysis concerning Intel
+// products described herein. You agree to grant Intel a non-exclusive, royalty-free license to any patent claim thereafter drafted which
+// includes subject matter disclosed herein.
+//
+// No license (express or implied, by estoppel or otherwise) to any intellectual property rights is granted by this document.
+// The products described may contain design defects or errors known as errata which may cause the product to deviate from published
+// specifications. Current characterized errata are available on request.
+//
+// This document contains information on products, services and/or processes in development. All information provided here is subject
+// to change without notice. Contact your Intel representative to obtain the latest Intel product specifications and roadmaps.
+//
+// Results have been estimated or simulated using internal Intel analysis or architecture simulation or modeling, and provided to you for
+// informational purposes. Any differences in your system hardware, software or configuration may affect your actual performance.
+//
+// Copies of documents which have an order number and are referenced in this document, or other Intel literature, may be obtained
+// by calling 1-800-548-4725, or by visiting http://www.intel.com/design/literature.htm.
+//
+// Intel, the Intel logo, Intel Atom, Intel Core, Intel SpeedStep, MMX, Pentium, VTune, and Xeon are trademarks of Intel Corporation
+// in the U.S. and/or other countries.
+//
+// *Other names and brands may be claimed as the property of others.
+//
+// Copyright © 1997-2017, Intel Corporation. All Rights Reserved
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
