@@ -1,6 +1,6 @@
 # Summary
 
-The intended user of this project is the developer of a numerical library that needs to know the throughput of floating-point FMA (fused multiply-add) on Xeon processors that support AVX-512.  *This project does not attempt to address the throughput of other operations, such as shuffles, permutations, or other non-floating-point instructions.*
+The intended user of this project is the developer of a numerical library that needs to know the throughput of floating-point FMA (fused multiply-add) on Xeon processors that support AVX-512.  *This project does not attempt to address the throughput of other operations, such as shuffles, permutations, or non-floating-point instructions.*
 
 The project provides example code to show a user how to determine the number of AVX-512 FMAs in an Intel processor based on the Skylake microarchitecture.  We encourage potential users to adapt the code to their usage, as some of the code included is rather pedantic (although this doesn't add significant runtime overhead unless debug printing is enabled).
 
