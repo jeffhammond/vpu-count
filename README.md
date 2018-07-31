@@ -1,6 +1,9 @@
 # Summary
 
-Determine the number of AVX-512 VPUs in an Intel processor based on the Skylake microarchitecture.
+The intended user of this project is the developer of a numerical library that needs to know the throughput of floating-point FMA (fused multiply-add) on Xeon processors that support AVX-512.  *This project does not attempt to address the throughput of other operations, such as shuffles, permutations, or other non-floating-point instructions.*
+
+The project provides example code to show a user how to determine the number of AVX-512 FMAs in an Intel processor based on the Skylake microarchitecture.  We encourage potential users to adapt the code to their usage, as some of the code included is rather pedantic (although this doesn't add significant runtime overhead unless debug printing is enabled).
+
 Relevant processors include:
 - Intel® Xeon® Scalable Processors
 - Intel® Xeon® W Processors
@@ -14,7 +17,7 @@ Intel® Xeon Phi™ processors are not covered here.
 
 This information is available from https://ark.intel.com/products/series/125191/Intel-Xeon-Scalable-Processors.
 
-| Processor Model Name | Number of VPUs |
+| Processor Model Name | Number of AVX-512 FMAs |
 |----------------------|----------------|
 | Intel® Xeon® Platinum 8180 Processor | 2 |
 | Intel® Xeon® Platinum 8176 Processor | 2 |
@@ -58,7 +61,7 @@ This information is available from https://ark.intel.com/products/series/125191/
 
 This information is available from https://ark.intel.com/products/series/125035/Intel-Xeon-Processor-W-Family.
 
-| Processor Model Name | Number of VPUs |
+| Processor Model Name | Number of AVX-512 FMAs |
 |----------------------|----------------|
 |Intel® Xeon® W-2195 Processor | 2 |
 |Intel® Xeon® W-2155 Processor | 2 |
@@ -72,7 +75,7 @@ This information is available from https://ark.intel.com/products/series/125035/
 
 This information is available from https://ark.intel.com/products/series/123588/Intel-Core-X-series-Processors ([relevant SKUs](https://ark.intel.com/compare/126699,126697,126240,126695,123613,123767,123589))
 
-| Processor Model Name | Number of VPUs |
+| Processor Model Name | Number of AVX-512 FMAs |
 |----------------------|----------------|
 | Intel® Core™ i9-7980XE Extreme Edition Processor | 2 |
 | Intel® Core™ i9-7960X X-series Processor         | 2 |
