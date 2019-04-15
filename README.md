@@ -1,8 +1,8 @@
 # Summary
 
-The intended user of this project is the developer of a numerical library that needs to know the throughput of floating-point FMA (fused multiply-add) on Xeon processors that support AVX-512.  *This project does not attempt to address the throughput of other operations, such as shuffles, permutations, or non-floating-point instructions.*
+The intended user of this project is the developer of a numerical library that needs to know the throughput of floating-point FMA (fused multiply-add) on Intel® processors that support AVX-512.  *This project does not attempt to address the throughput of other operations, such as shuffles, permutations, or non-floating-point instructions.*
 
-The project provides example code to show a user how to determine the number of AVX-512 FMAs in an Intel processor based on the Skylake microarchitecture.  We encourage potential users to adapt the code to their usage, as some of the code included is rather pedantic (although this doesn't add significant runtime overhead unless debug printing is enabled).
+The project provides example code to show a user how to determine the number of AVX-512 FMAs in Intel® Xeon® Scalable processors.  We encourage potential users to adapt the code to their usage, as some of the code included is rather pedantic (although this doesn't add significant runtime overhead unless debug printing is enabled).
 
 Relevant processors include:
 - Intel® Xeon® Scalable Processors
@@ -56,6 +56,44 @@ This information is available from https://ark.intel.com/products/series/125191/
 | Intel® Xeon® Silver 4108 Processor | 1 |
 | Intel® Xeon® Bronze 3106 Processor | 1 |
 | Intel® Xeon® Bronze 3104 Processor | 1 |
+
+## 2nd Generation Intel® Xeon® Scalable Processors
+
+This information is available from https://ark.intel.com/content/www/us/en/ark/products/series/192283/2nd-generation-intel-xeon-scalable-processors.html.
+
+| Processor Model Name | Number of AVX-512 FMAs |
+|----------------------|----------------|
+| Intel® Xeon® Platinum 9282 Processor | 2 |
+| Intel® Xeon® Platinum 9242 Processor | 2 |
+| Intel® Xeon® Platinum 8280 Processor | 2 |
+| Intel® Xeon® Platinum 8276 Processor | 2 |
+| Intel® Xeon® Platinum 8270 Processor | 2 |
+| Intel® Xeon® Platinum 8268 Processor | 2 |
+| Intel® Xeon® Platinum 8260 Processor | 2 |
+| Intel® Xeon® Platinum 8256 Processor | 2 |
+| Intel® Xeon® Platinum 8253 Processor | 2 |
+| Intel® Xeon® Gold 6254 Processor     | 2 |
+| Intel® Xeon® Gold 6252 Processor     | 2 |
+| Intel® Xeon® Gold 6248 Processor     | 2 |
+| Intel® Xeon® Gold 6246 Processor     | 2 |
+| Intel® Xeon® Gold 6244 Processor     | 2 |
+| Intel® Xeon® Gold 6242 Processor     | 2 |
+| Intel® Xeon® Gold 6240 Processor     | 2 |
+| Intel® Xeon® Gold 6238 Processor     | 2 |
+| Intel® Xeon® Gold 6234 Processor     | 2 |
+| Intel® Xeon® Gold 6230 Processor     | 2 |
+| Intel® Xeon® Gold 6226 Processor     | 2 |
+| Intel® Xeon® Gold 5222 Processor     | 2 |
+| Intel® Xeon® Gold 5220 Processor     | 1 |
+| Intel® Xeon® Gold 5218 Processor     | 1 |
+| Intel® Xeon® Gold 5217 Processor     | 1 |
+| Intel® Xeon® Gold 5215 Processor     | 1 |
+| Intel® Xeon® Silver 4216 Processor   | 1 |
+| Intel® Xeon® Silver 4215 Processor   | 1 |
+| Intel® Xeon® Silver 4214 Processor   | 1 |
+| Intel® Xeon® Silver 4210 Processor   | 1 |
+| Intel® Xeon® Silver 4208 Processor   | 1 |
+| Intel® Xeon® Bronze 3204 Processor   | 1 |
 
 ## Intel® Xeon® W Processors
 
