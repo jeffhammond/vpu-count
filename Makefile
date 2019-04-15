@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -O3 -fopenmp
+CFLAGS = -Wall -O3 -fopenmp -std=c99
 
 #CFLAGS += -DDEBUG -g3
 
