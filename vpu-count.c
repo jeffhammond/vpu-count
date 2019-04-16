@@ -36,9 +36,9 @@
 #endif
 
 #ifdef DEBUG
-#define PDEBUG(fmt, ...) do { printf(fmt, __VA_ARGS__); } while (0)
+#define PDEBUG(...) printf(__VA_ARGS__)
 #else
-#define PDEBUG(fmt, ...)
+#define PDEBUG(...)
 #endif
 
 void get_cpu_name32(char cpu_name[32])
@@ -122,7 +122,7 @@ void get_leaf1(uint32_t leaf1[4], bool * skylake_avx512)
         model  += (xmodel << 4);
         //family += xfamily;
     }
-    *skylake_avx512 = (model == 0x55);
+    *skylake_avx512 = (model == 0x55); /* 85 in binary */
 
     PDEBUG("signature:  %#08x\n", (leaf1[0]) );
     //PDEBUG("stepping:   %#04x=%d\n", stepping, stepping);
@@ -194,7 +194,7 @@ int vpu_count(void)
         PDEBUG("cpu_name[9] = %c\n", cpu_name[9]);
         PDEBUG("cpu_name[17] = %c\n", cpu_name[17]);
 
-        /* Skylake-X series: * "Intel(R) Core (TM)..." */
+        /* Skylake-X series: "Intel(R) Core (TM)..." */
         if (cpu_name[9] == 'C') {
             return 2;
         }
@@ -217,7 +217,7 @@ int vpu_count(void)
                 if (cpu_name[22] == '6') {
                     return 2;
                 /* 5122 */
-                } else if (cpu_name[22] == 5 && cpu_name[24] == 2 && cpu_name[25] == 2) {
+                } else if (cpu_name[22] == '5' && cpu_name[24] == '2' && cpu_name[25] == '2') {
                     return 2;
                 /* 51xx */
                 } else {
@@ -234,6 +234,10 @@ int vpu_count(void)
                     return 2;
                 }
             }
+        }
+        /* Pre-production parts: Genuine Intel(R) CPU 0000 */
+        else if (cpu_name[0] == 'G' && cpu_name[21] == '0' && cpu_name[22] == '0' && cpu_name[23] == '0' && cpu_name[24] == '0') {
+            return 2;
         }
         /* If we get here, the part is not supported by the SKX logic */
         return -1;
