@@ -1,7 +1,7 @@
-CC = gcc
+CC = icc
 CFLAGS = -Wall -O3 -fopenmp -std=c99
 
-#CFLAGS += -DDEBUG -g3
+CFLAGS += -DDEBUG -g3
 
 all: test.x time.x empirical.x
 

@@ -186,10 +186,10 @@ int vpu_count(void)
 #endif
 
     if (skylake_avx512) {
-        PDEBUG("Skylake AVX-512 detected...\n");
         char cpu_name[32] = {0};
         get_cpu_name32(cpu_name);
 
+        PDEBUG("Skylake AVX-%d detected\n", 512);
         PDEBUG("cpu_name = %s\n", cpu_name);
         PDEBUG("cpu_name[9] = %c\n", cpu_name[9]);
         PDEBUG("cpu_name[17] = %c\n", cpu_name[17]);
@@ -242,5 +242,12 @@ int vpu_count(void)
         /* If we get here, the part is not supported by the SKX logic */
         return -1;
     }
+#ifdef DEBUG
+    else {
+        char cpu_name[48] = {0};
+        get_cpu_name48(cpu_name);
+        PDEBUG("cpu_name = %s\n", cpu_name);
+    }
+#endif
     return 0;
 }
