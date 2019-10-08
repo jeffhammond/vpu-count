@@ -224,10 +224,10 @@ int vpu_count(void)
                     return 1;
                 }
             }
-            /* Xeon W series: "Intel(R) Xeon(R) Processor W-21xx..." */
-            else if (cpu_name[27] == 'W') {
+            /* Xeon W series: "Intel(R) Xeon(R) W-21xx..." */
+            else if (cpu_name[17] == 'W') {
                 /* 2102 or 2104 */
-                if (cpu_name[31] == '0') {
+                if (cpu_name[21] == '0') {
                     return 1;
                 /* 212x and higher */
                 } else {
