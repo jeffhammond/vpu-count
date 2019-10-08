@@ -234,6 +234,14 @@ int vpu_count(void)
                     return 2;
                 }
             }
+            /* Xeon Scalable series: "Intel(R) Xeon(R) D-2xxx..." */
+            else if (cpu_name[17] == 'D') {
+                if (cpu_name[19] == '2' && cpu_name[20] == '1') {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
         }
         /* Pre-production parts: Genuine Intel(R) CPU 0000 */
         else if (cpu_name[0] == 'G' && cpu_name[21] == '0' && cpu_name[22] == '0' && cpu_name[23] == '0' && cpu_name[24] == '0') {
