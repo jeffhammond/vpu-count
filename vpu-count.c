@@ -195,6 +195,7 @@ int vpu_count(void)
         PDEBUG("cpu_name[17] = %c\n", cpu_name[17]);
 
         /* Skylake-X series: "Intel(R) Core (TM)..." */
+        /* Cascade Lake-X series: "Intel(R) Core (TM)..." */
         if (cpu_name[9] == 'C') {
             return 2;
         }
@@ -202,14 +203,6 @@ int vpu_count(void)
             /* Xeon Scalable series: "Intel(R) Xeon(R) Platinum..." */
             if (cpu_name[17] == 'P') {
                 return 2;
-            }
-            /* Xeon Scalable series: "Intel(R) Xeon(R) Silver..." */
-            else if (cpu_name[17] == 'S') {
-                return 1;
-            }
-            /* Xeon Scalable series: "Intel(R) Xeon(R) Bronze..." */
-            else if (cpu_name[17] == 'B') {
-                return 1;
             }
             /* Xeon Scalable series: "Intel(R) Xeon(R) Gold..." */
             else if (cpu_name[17] == 'G') {
@@ -224,21 +217,34 @@ int vpu_count(void)
                     return 1;
                 }
             }
-            /* Xeon W series: "Intel(R) Xeon(R) W-21xx..." */
+            /* Xeon Scalable series: "Intel(R) Xeon(R) Silver..." */
+            else if (cpu_name[17] == 'S') {
+                return 1;
+            }
+            /* Xeon Scalable series: "Intel(R) Xeon(R) Bronze..." */
+            else if (cpu_name[17] == 'B') {
+                return 1;
+            }
+            /* Xeon W series: "Intel(R) Xeon(R) W..." */
             else if (cpu_name[17] == 'W') {
-                /* 2102 or 2104 */
+                /* 2102 or 2104 are Skylake X w/ 1 FMA */
                 if (cpu_name[21] == '0') {
                     return 1;
-                /* 212x and higher */
-                } else {
+                }
+                /* 212x and higher are Skylake-X w/ 2 FMAs */
+                /* 22xx and 32xx are Cascade Lake-X w/ 2 FMAs */
+                else {
                     return 2;
                 }
             }
-            /* Xeon Scalable series: "Intel(R) Xeon(R) D-2xxx..." */
+            /* Xeon D series: "Intel(R) Xeon(R) D-2xxx..." */
             else if (cpu_name[17] == 'D') {
+                /* 21xx series is Skylake-X */
                 if (cpu_name[19] == '2' && cpu_name[20] == '1') {
                     return 1;
-                } else {
+                }
+                /* Broadwell and Hewitt Lake do not support AVX-512 */
+                else {
                     return 0;
                 }
             }
