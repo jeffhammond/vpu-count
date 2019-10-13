@@ -103,7 +103,7 @@ bool is_skylake(void)
     PDEBUG("Intel? %s\n", intel ? "yes" : "no");
 
     bool skylake = (leaf0[1] & 0x16);
-    PDEBUG("Skylake? %s\n", skylake ? "yes" : "no");
+    PDEBUG("Skylake uarch? %s\n", skylake ? "yes" : "no");
 
     return (intel && skylake);
 }
@@ -248,7 +248,7 @@ int vpu_count(void)
         char cpu_name[32] = {0};
         get_cpu_name32(cpu_name);
 
-        PDEBUG("Skylake AVX-%d detected\n", 512);
+        PDEBUG("Skylake AVX-512 detected\n");
         PDEBUG("cpu_name = %s\n", cpu_name);
         PDEBUG("cpu_name[9] = %c\n", cpu_name[9]);
         PDEBUG("cpu_name[17] = %c\n", cpu_name[17]);
@@ -324,7 +324,7 @@ int vpu_count(void)
         char cpu_name[48] = {0};
         get_cpu_name48(cpu_name);
         fprintf(stderr,"UNSUPPORTED CPU! cpu_name = %s\n", cpu_name);
-        return -1;
+        return 0;
     }
 #endif
     return 0;
