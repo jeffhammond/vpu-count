@@ -38,7 +38,11 @@
 
 #include <immintrin.h>
 
+#if 1
 #include <omp.h>
+#else
+#include <mpi.h>
+#endif
 
 static uint64_t rdtsc(void)
 {
@@ -145,9 +149,9 @@ uint64_t fma_only_tpt(int loop_cnt) {
     }
 }
 
-int main(void)
+int measure(void)
 {
-    double t0 = omp_get_wtime();
+    //double t0 = omp_get_wtime();
 
     uint64_t number_of_fma_units_per_core = 2;
 
@@ -193,8 +197,33 @@ int main(void)
         }
         //printf("%llu FMA server\n", number_of_fma_units_per_core);
     }
-    printf("%llu FMA server\n", number_of_fma_units_per_core);
-    double t1 = omp_get_wtime();
-    printf("%f us, %f us\n", 1.e6*(t1-t0), 1.e6*(t1-t0)/1000.);
+    //printf("%llu FMA server\n", number_of_fma_units_per_core);
+    //double t1 = omp_get_wtime();
+    //printf("%f us, %f us\n", 1.e6*(t1-t0), 1.e6*(t1-t0)/1000.);
+    //return 0;
+    return number_of_fma_units_per_core;
+}
+
+int main(void)
+{
+#if 1
+    #pragma omp parallel
+    {
+        int vpu = measure();
+        #pragma omp critical
+        {
+            printf("vpu=%d\n", vpu);
+        }
+    }
+#else
+    MPI_Init(NULL,NULL);
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    MPI_Barrier(MPI_COMM_WORLD);
+    int vpu = measure();
+    MPI_Barrier(MPI_COMM_WORLD);
+    printf("%d: vpu=%d\n", rank, vpu);
+    MPI_Finalize();
+#endif
     return 0;
 }
