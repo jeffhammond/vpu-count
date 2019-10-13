@@ -91,7 +91,7 @@ void get_cpu_name48(char cpu_name[48])
     PDEBUG("0x80000004u: \"%.*s\"\n", 16, &cpu_name[32]);
 }
 
-bool is_skylake(void)
+bool is_intel(void)
 {
     /* leaf 0 - Architecture */
     uint32_t leaf0[4]={0x0,0x0,0x0,0x0};
@@ -102,10 +102,11 @@ bool is_skylake(void)
     bool intel = (leaf0[1] == 0x756e6547) && (leaf0[2] == 0x6c65746e) && (leaf0[3] == 0x49656e69);
     PDEBUG("Intel? %s\n", intel ? "yes" : "no");
 
-    bool skylake = (leaf0[1] & 0x16);
-    PDEBUG("Skylake uarch? %s\n", skylake ? "yes" : "no");
+    /* This is not an accurate test for Skylake... */
+    //bool skylake = (leaf0[1] & 0x16);
+    //PDEBUG("Skylake uarch? %s\n", skylake ? "yes" : "no");
 
-    return (intel && skylake);
+    return (intel);
 }
 
 bool is_skylake_server(void)
@@ -139,9 +140,13 @@ bool is_skylake_server(void)
     PDEBUG("ext model:  %#04x=%d\n", xmodel, xmodel);
     //PDEBUG("ext family: %#08x=%d\n", xfamily, xfamily);
 
-    return (model == 0x55); /* 85 in binary */
+    bool skylake_server = (model == 0x55); /* 85 in binary */
+    PDEBUG("Skylake server? %s\n", skylake_server ? "yes" : "no");
+
+    return (skylake_server);
 }
 
+#ifdef SUPPORT_XEON_PHI
 bool is_knl(void)
 {
     /* leaf 7 - AVX-512 features */
@@ -154,6 +159,7 @@ bool is_knl(void)
                (leaf7[1] & 1u<<28) && /* AVX-512CD */
                (leaf7[1] & 1u<<26) && /* AVX-512PF */
                (leaf7[1] & 1u<<27);   /* AVX-512ER */
+    PDEBUG("KNL uarch? %s\n", knl ? "yes" : "no");
 
     return (knl);
 }
@@ -173,9 +179,11 @@ bool is_knm(void)
 
     /* KNM is a superset of KNL, at least architecturally */
     bool knm = knl && (leaf7[2] & 1u<<14); /* AVX-512VPOPCNTDQ */
+    PDEBUG("KNM uarch? %s\n", knl ? "yes" : "no");
 
     return (knm);
 }
+#endif // SUPPORT_XEON_PHI
 
 bool has_skx_avx512(void)
 {
@@ -242,7 +250,7 @@ int vpu_count(void)
      * We are going to do all the checks. */
     /* Note that Skylake, Cascade Lake and Cooper Lake all share the same
      * CPUID bits for model and extended model. */
-    bool skylake_avx512 = is_skylake() && is_skylake_server() && has_skx_avx512();
+    bool skylake_avx512 = is_intel() && is_skylake_server() && has_skx_avx512();
 
     if (skylake_avx512) {
         char cpu_name[32] = {0};
@@ -316,9 +324,11 @@ int vpu_count(void)
             return 2;
         }
     }
+#ifdef SUPPORT_XEON_PHI
     else if ( is_knl() || is_knm() ) {
         return 2;
     }
+#endif
 #ifdef DEBUG
     else {
         char cpu_name[48] = {0};
