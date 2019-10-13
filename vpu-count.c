@@ -91,20 +91,28 @@ void get_cpu_name48(char cpu_name[48])
     PDEBUG("0x80000004u: \"%.*s\"\n", 16, &cpu_name[32]);
 }
 
-void get_leaf0(uint32_t leaf0[4], bool * is_intel, bool * skylake)
+bool is_skylake(void)
 {
+    /* leaf 0 - Architecture */
+    uint32_t leaf0[4]={0x0,0x0,0x0,0x0};
+
     __cpuid(leaf0[0], leaf0[0], leaf0[1], leaf0[2], leaf0[3]);
     PDEBUG("0x0: %x,%x,%x,%x\n", leaf0[0], leaf0[1], leaf0[2], leaf0[3]);
 
-    *is_intel = (leaf0[1] == 0x756e6547) && (leaf0[2] == 0x6c65746e) && (leaf0[3] == 0x49656e69);
-    PDEBUG("Intel? %s\n", *is_intel ? "yes" : "no");
+    bool intel = (leaf0[1] == 0x756e6547) && (leaf0[2] == 0x6c65746e) && (leaf0[3] == 0x49656e69);
+    PDEBUG("Intel? %s\n", intel ? "yes" : "no");
 
-    *skylake = (leaf0[1] & 0x16);
-    PDEBUG("Skylake? %s\n", *skylake ? "yes" : "no");
+    bool skylake = (leaf0[1] & 0x16);
+    PDEBUG("Skylake? %s\n", skylake ? "yes" : "no");
+
+    return (intel && skylake);
 }
 
-void get_leaf1(uint32_t leaf1[4], bool * skylake_avx512)
+bool is_skylake_server(void)
 {
+    /* leaf 1 - Model, Family, etc. */
+    uint32_t leaf1[4]={0x1,0x0,0x0,0x0};
+
     __cpuid(leaf1[0], leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
     PDEBUG("0x1: %x,%x,%x,%x\n", leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
 
@@ -122,7 +130,6 @@ void get_leaf1(uint32_t leaf1[4], bool * skylake_avx512)
         model  += (xmodel << 4);
         //family += xfamily;
     }
-    *skylake_avx512 = (model == 0x55); /* 85 in binary */
 
     PDEBUG("signature:  %#08x\n", (leaf1[0]) );
     //PDEBUG("stepping:   %#04x=%d\n", stepping, stepping);
@@ -131,59 +138,111 @@ void get_leaf1(uint32_t leaf1[4], bool * skylake_avx512)
     //PDEBUG("proc type:  %#04x=%d\n", proctype, proctype);
     PDEBUG("ext model:  %#04x=%d\n", xmodel, xmodel);
     //PDEBUG("ext family: %#08x=%d\n", xfamily, xfamily);
+
+    return (model == 0x55); /* 85 in binary */
 }
 
-void get_leaf7(uint32_t leaf7[4], bool * xeon_avx512, bool * knl, bool * knm)
+bool is_knl(void)
 {
+    /* leaf 7 - AVX-512 features */
+    uint32_t leaf7[4]={0x7,0x0,0x0,0x0};
+
     __cpuid_count(leaf7[0], leaf7[2], leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
     PDEBUG("0x7: %x,%x,%x,%x\n", leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
 
-    *knl = (leaf7[1] & 1u<<16) && /* AVX-512F  */
-           (leaf7[1] & 1u<<28) && /* AVX-512CD */
-           (leaf7[1] & 1u<<26) && /* AVX-512PF */
-           (leaf7[1] & 1u<<27);   /* AVX-512ER */
+    bool knl = (leaf7[1] & 1u<<16) && /* AVX-512F  */
+               (leaf7[1] & 1u<<28) && /* AVX-512CD */
+               (leaf7[1] & 1u<<26) && /* AVX-512PF */
+               (leaf7[1] & 1u<<27);   /* AVX-512ER */
+
+    return (knl);
+}
+
+bool is_knm(void)
+{
+    /* leaf 7 - AVX-512 features */
+    uint32_t leaf7[4]={0x7,0x0,0x0,0x0};
+
+    __cpuid_count(leaf7[0], leaf7[2], leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
+    PDEBUG("0x7: %x,%x,%x,%x\n", leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
+
+    bool knl = (leaf7[1] & 1u<<16) && /* AVX-512F  */
+               (leaf7[1] & 1u<<28) && /* AVX-512CD */
+               (leaf7[1] & 1u<<26) && /* AVX-512PF */
+               (leaf7[1] & 1u<<27);   /* AVX-512ER */
 
     /* KNM is a superset of KNL, at least architecturally */
-    *knm = *knl && (leaf7[2] & 1u<<14); /* AVX-512VPOPCNTDQ */
+    bool knm = knl && (leaf7[2] & 1u<<14); /* AVX-512VPOPCNTDQ */
 
-    *xeon_avx512 = (leaf7[1] & 1u<<16) && /* AVX-512F  */
-                   (leaf7[1] & 1u<<17) && /* AVX-512DQ */
-                   (leaf7[1] & 1u<<28) && /* AVX-512CD */
-                   (leaf7[1] & 1u<<30) && /* AVX-512BW */
-                   (leaf7[1] & 1u<<31);   /* AVX-512VL */
+    return (knm);
+}
 
-#ifdef DEBUG
-    const char * name = "None";
-    if (*xeon_avx512) name = "Xeon";
-    else if (*knm) name = "KNM";
-    else if (*knl) name = "KNL";
-    PDEBUG("AVX-512: %s\n", name);
-#endif
+bool has_skx_avx512(void)
+{
+    /* leaf 7 - AVX-512 features */
+    uint32_t leaf7[4]={0x7,0x0,0x0,0x0};
+
+    __cpuid_count(leaf7[0], leaf7[2], leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
+    PDEBUG("0x7: %x,%x,%x,%x\n", leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
+
+    bool skx = (leaf7[1] & 1u<<16) && /* AVX-512F  */
+               (leaf7[1] & 1u<<17) && /* AVX-512DQ */
+               (leaf7[1] & 1u<<28) && /* AVX-512CD */
+               (leaf7[1] & 1u<<30) && /* AVX-512BW */
+               (leaf7[1] & 1u<<31);   /* AVX-512VL */
+
+    return (skx);
+}
+
+bool has_avx512_vnni(void)
+{
+    /* leaf 7 - AVX-512 features */
+    uint32_t leaf7[4]={0x7,0x0,0x0,0x0};
+
+    __cpuid_count(leaf7[0], leaf7[2], leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
+    PDEBUG("0x7: %x,%x,%x,%x\n", leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
+
+    bool vnni = (leaf7[2] & 1u<<11); /* AVX-512VNNI */
+
+    return (vnni);
+}
+
+bool has_avx512_vpopcntdq(void)
+{
+    /* leaf 7 - AVX-512 features */
+    uint32_t leaf7[4]={0x7,0x0,0x0,0x0};
+
+    __cpuid_count(leaf7[0], leaf7[2], leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
+    PDEBUG("0x7: %x,%x,%x,%x\n", leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
+
+    bool vpopcntdq = (leaf7[2] & 1u<<14); /* AVX-512VPOPCNTDQ */
+
+    return (vpopcntdq);
+}
+
+bool has_avx512_bf16(void)
+{
+    /* based on https://software.intel.com/sites/default/files/managed/c5/15/architecture-instruction-set-extensions-programming-reference.pdf */
+
+    /* leaf 7 - AVX-512 features */
+    uint32_t leaf7[4]={0x7,0x0,0x1,0x0};
+
+    __cpuid_count(leaf7[0], leaf7[2], leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
+    PDEBUG("0x7010: %x,%x,%x,%x\n", leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
+
+    bool bf16 = (leaf7[0] & 1u<<5); /* AVX-512BF16 */
+
+    return (bf16);
 }
 
 int vpu_count(void)
 {
     /* We can either detect Skylake AVX-512 directly from leaf1 or detect it
      * via Skylake arch from leaf0 plus AVX-512 features from leaf7.
-     * Clearly, the former is simpler. */
-    bool skylake_avx512 = false;
-#if 1
-    /* leaf 1 - Model, Family, etc. */
-    uint32_t leaf1[4]={0x1,0x0,0x0,0x0};
-    get_leaf1(leaf1, &skylake_avx512);
-#else
-    /* leaf 0 - Architecture */
-    bool is_intel = false, skylake = false;
-    uint32_t leaf0[4]={0x0,0x0,0x0,0x0};
-    get_leaf0(leaf0, &is_intel, &skylake);
-
-    /* leaf 7 - AVX-512 features */
-    bool xeon_avx512 = false, knl = false, knm = false;
-    uint32_t leaf7[4]={0x7,0x0,0x0,0x0};
-    get_leaf7(leaf7, &xeon_avx512, &knl, &knm);
-
-    skylake_avx512 = skylake && xeon_avx512;
-#endif
+     * We are going to do all the checks. */
+    /* Note that Skylake, Cascade Lake and Cooper Lake all share the same
+     * CPUID bits for model and extended model. */
+    bool skylake_avx512 = is_skylake() && is_skylake_server() && has_skx_avx512();
 
     if (skylake_avx512) {
         char cpu_name[32] = {0};
@@ -243,24 +302,29 @@ int vpu_count(void)
                 if (cpu_name[19] == '2' && cpu_name[20] == '1') {
                     return 1;
                 }
-                /* Broadwell and Hewitt Lake do not support AVX-512 */
-                else {
-                    return 0;
-                }
             }
         }
         /* Pre-production parts: Genuine Intel(R) CPU 0000 */
         else if (cpu_name[0] == 'G' && cpu_name[21] == '0' && cpu_name[22] == '0' && cpu_name[23] == '0' && cpu_name[24] == '0') {
             return 2;
         }
-        /* If we get here, the part is not supported by the SKX logic */
-        return -1;
+        /* Default to 2 FMAs and hope for the best... */
+        else {
+            char cpu_name[48] = {0};
+            get_cpu_name48(cpu_name);
+            fprintf(stderr,"UNSUPPORTED SKU! cpu_name = %s\n", cpu_name);
+            return 2;
+        }
+    }
+    else if ( is_knl() || is_knm() ) {
+        return 2;
     }
 #ifdef DEBUG
     else {
         char cpu_name[48] = {0};
         get_cpu_name48(cpu_name);
-        PDEBUG("cpu_name = %s\n", cpu_name);
+        fprintf(stderr,"UNSUPPORTED CPU! cpu_name = %s\n", cpu_name);
+        return -1;
     }
 #endif
     return 0;
