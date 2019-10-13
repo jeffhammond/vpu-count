@@ -7,13 +7,14 @@ The project provides example code to show a user how to determine the number of 
 Relevant processors include:
 - Intel® Xeon® Scalable Processors
 - Intel® Xeon® W Processors
+- Intel® Xeon® D Processors
 - Intel® Core™ X-series Processors
 
 Intel® Xeon Phi™ processors are not covered here.
 
 # Processors
 
-## Intel® Xeon® Scalable Processors
+## Intel® Xeon® Scalable Processors (Skylake)
 
 This information is available from https://ark.intel.com/products/series/125191/Intel-Xeon-Scalable-Processors.
 
@@ -57,7 +58,7 @@ This information is available from https://ark.intel.com/products/series/125191/
 | Intel® Xeon® Bronze 3106 Processor | 1 |
 | Intel® Xeon® Bronze 3104 Processor | 1 |
 
-## 2nd Generation Intel® Xeon® Scalable Processors
+## 2nd Generation Intel® Xeon® Scalable Processors (Cascade Lake)
 
 This information is available from https://ark.intel.com/content/www/us/en/ark/products/series/192283/2nd-generation-intel-xeon-scalable-processors.html.
 
@@ -99,6 +100,8 @@ This information is available from https://ark.intel.com/content/www/us/en/ark/p
 
 This information is available from https://ark.intel.com/products/series/125035/Intel-Xeon-Processor-W-Family.
 
+### Skylake
+
 | Processor Model Name | Number of AVX-512 FMAs |
 |----------------------|----------------|
 |Intel® Xeon® W-2195 Processor | 2 |
@@ -109,16 +112,55 @@ This information is available from https://ark.intel.com/products/series/125035/
 |Intel® Xeon® W-2125 Processor | 2 |
 |Intel® Xeon® W-2123 Processor | 2 |
 
-## Intel® Core™ X-series Processors
-
-This information is available from https://ark.intel.com/products/series/123588/Intel-Core-X-series-Processors ([relevant SKUs](https://ark.intel.com/compare/126699,126697,126240,126695,123613,123767,123589))
+### Cascade Lake
 
 | Processor Model Name | Number of AVX-512 FMAs |
 |----------------------|----------------|
-| Intel® Core™ i9-7980XE Extreme Edition Processor | 2 |
-| Intel® Core™ i9-7960X X-series Processor         | 2 |
-| Intel® Core™ i9-7940X X-series Processor         | 2 |
-| Intel® Core™ i9-7920X X-series Processor         | 2 |
-| Intel® Core™ i9-7900X X-series Processor         | 2 |
-| Intel® Core™ i7-7820X X-series Processor         | 2 |
-| Intel® Core™ i7-7800X X-series Processor         | 2 |
+|Intel® Xeon® W-3235 Processor  | 2 |
+|Intel® Xeon® W-3265M Processor | 2 |
+|Intel® Xeon® W-3245M Processor | 2 |
+|Intel® Xeon® W-3275 Processor  | 2 |
+|Intel® Xeon® W-3245 Processor  | 2 |
+|Intel® Xeon® W-3275M Processor | 2 |
+|Intel® Xeon® W-3223 Processor  | 2 |
+|Intel® Xeon® W-3265 Processor  | 2 |
+|Intel® Xeon® W-3225 Processor  | 2 |
+|Intel® Xeon® W-2275 Processor  | 2 |
+|Intel® Xeon® W-2295 Processor  | 2 |
+|Intel® Xeon® W-2265 Processor  | 2 |
+|Intel® Xeon® W-2255 Processor  | 2 |
+|Intel® Xeon® W-2223 Processor  | 2 |
+|Intel® Xeon® W-2245 Processor  | 2 |
+|Intel® Xeon® W-2225 Processor  | 2 |
+|Intel® Xeon® W-2235 Processor  | 2 |
+
+## Intel® Xeon® D Processors
+
+This information should be available from https://ark.intel.com/content/www/us/en/ark/products/series/87041/intel-xeon-d-processor.html.
+
+There is some ambiguity here.  See https://www.servethehome.com/intel-xeon-d-2183it-benchmarks-and-review-16c-soc/2/.
+
+## Intel® Core™ X-series Processors
+
+This information is available from https://ark.intel.com/products/series/123588/Intel-Core-X-series-Processors.
+
+### [Skylake](https://ark.intel.com/compare/126699,126697,126240,126695,123613,123767,123589)
+
+| Processor Model Name | Number of AVX-512 FMAs |
+|----------------------|----------------|
+| Intel® Core™ i9-7980XE Extreme Edition Processor  | 2 |
+| Intel® Core™ i9-7960X X-series Processor          | 2 |
+| Intel® Core™ i9-7940X X-series Processor          | 2 |
+| Intel® Core™ i9-7920X X-series Processor          | 2 |
+| Intel® Core™ i9-7900X X-series Processor          | 2 |
+| Intel® Core™ i7-7820X X-series Processor          | 2 |
+| Intel® Core™ i7-7800X X-series Processor          | 2 |
+
+### [Cascade Lake](https://ark.intel.com/compare/198017,198019,198012,198014)
+
+| Processor Model Name | Number of AVX-512 FMAs |
+|----------------------|----------------|
+| Intel® Core™ i9-10980XE Extreme Edition Processor | 2 |
+| Intel® Core™ i9-10900X X-series Processor         | 2 |
+| Intel® Core™ i9-10920X X-series Processor         | 2 |
+| Intel® Core™ i9-10940X X-series Processor         | 2 |

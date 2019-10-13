@@ -1,7 +1,8 @@
 CC = icc
-CFLAGS = -Wall -O3 -fopenmp -std=c99
+CFLAGS = -Wall -g3 -O3 -fopenmp -std=c99
 
-CFLAGS += -DDEBUG -g3
+CFLAGS += -DDEBUG
+CFLAGS += -DSUPPORT_XEON_PHI
 
 all: test.x time.x empirical.x
 
