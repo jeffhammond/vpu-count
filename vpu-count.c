@@ -102,10 +102,6 @@ bool is_intel(void)
     bool intel = (leaf0[1] == 0x756e6547) && (leaf0[2] == 0x6c65746e) && (leaf0[3] == 0x49656e69);
     PDEBUG("Intel? %s\n", intel ? "yes" : "no");
 
-    /* This is not an accurate test for Skylake... */
-    //bool skylake = (leaf0[1] & 0x16);
-    //PDEBUG("Skylake uarch? %s\n", skylake ? "yes" : "no");
-
     return (intel);
 }
 
@@ -146,7 +142,43 @@ bool is_skylake_server(void)
     return (skylake_server);
 }
 
-#ifdef SUPPORT_XEON_PHI
+bool is_icelake(void)
+{
+    /* leaf 1 - Model, Family, etc. */
+    uint32_t leaf1[4]={0x1,0x0,0x0,0x0};
+
+    __cpuid(leaf1[0], leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
+    PDEBUG("0x1: %x,%x,%x,%x\n", leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
+
+    //uint32_t stepping  = (leaf1[0]      ) & 0x0f;
+    uint32_t model     = (leaf1[0] >>  4) & 0x0f;
+    uint32_t family    = (leaf1[0] >>  8) & 0x0f;
+    //uint32_t proctype  = (leaf1[0] >> 12) & 0x03;
+    uint32_t xmodel    = (leaf1[0] >> 16) & 0x0f;
+    //uint32_t xfamily   = (leaf1[0] >> 20) & 0xff;
+
+    if (family == 0x06) {
+        model  += (xmodel << 4);
+    }
+    else if (family == 0x0f) {
+        model  += (xmodel << 4);
+        //family += xfamily;
+    }
+
+    PDEBUG("signature:  %#08x\n", (leaf1[0]) );
+    //PDEBUG("stepping:   %#04x=%d\n", stepping, stepping);
+    PDEBUG("model:      %#04x=%d\n", model, model);
+    PDEBUG("family:     %#04x=%d\n", family, family);
+    //PDEBUG("proc type:  %#04x=%d\n", proctype, proctype);
+    PDEBUG("ext model:  %#04x=%d\n", xmodel, xmodel);
+    //PDEBUG("ext family: %#08x=%d\n", xfamily, xfamily);
+
+    bool icelake = (model == 0x66); /* 102 in binary */
+    PDEBUG("Ice Lake? %s\n", icelake ? "yes" : "no");
+
+    return (icelake);
+}
+
 bool is_knl(void)
 {
     /* leaf 7 - AVX-512 features */
@@ -183,7 +215,6 @@ bool is_knm(void)
 
     return (knm);
 }
-#endif // SUPPORT_XEON_PHI
 
 bool has_skx_avx512(void)
 {
@@ -245,14 +276,15 @@ bool has_avx512_bf16(void)
 
 int vpu_count(void)
 {
-    /* We can either detect Skylake AVX-512 directly from leaf1 or detect it
-     * via Skylake arch from leaf0 plus AVX-512 features from leaf7.
-     * We are going to do all the checks. */
+    /* I have no idea what to do for non-Intel CPUs. */
+    if ( !is_intel() ) {
+        fprintf(stderr, "Intel CPU required\n");
+        return 0;
+    }
+
     /* Note that Skylake, Cascade Lake and Cooper Lake all share the same
      * CPUID bits for model and extended model. */
-    bool skylake_avx512 = is_intel() && is_skylake_server() && has_skx_avx512();
-
-    if (skylake_avx512) {
+    if ( is_skylake_server() && has_skx_avx512() ) {
         char cpu_name[32] = {0};
         get_cpu_name32(cpu_name);
 
@@ -324,11 +356,25 @@ int vpu_count(void)
             return 2;
         }
     }
+#ifdef SUPPORT_ICELAKE
+    else if ( is_icelake() ) {
+        char cpu_name[32] = {0};
+        get_cpu_name32(cpu_name);
+
+        PDEBUG("Ice Lake AVX-512 detected\n");
+        PDEBUG("cpu_name = %s\n", cpu_name);
+        PDEBUG("cpu_name[9] = %c\n", cpu_name[9]);
+        PDEBUG("cpu_name[17] = %c\n", cpu_name[17]);
+
+        /* Update this once information is available... */
+        return -1;
+    }
+#endif /* SUPPORT_ICELAKE */
 #ifdef SUPPORT_XEON_PHI
     else if ( is_knl() || is_knm() ) {
         return 2;
     }
-#endif
+#endif /* SUPPORT_XEON_PHI */
 #ifdef DEBUG
     else {
         char cpu_name[48] = {0};
