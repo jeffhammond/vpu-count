@@ -142,7 +142,7 @@ bool is_skylake_server(void)
     return (skylake_server);
 }
 
-bool is_icelake(void)
+bool is_icelake_client(void)
 {
     /* leaf 1 - Model, Family, etc. */
     uint32_t leaf1[4]={0x1,0x0,0x0,0x0};
@@ -173,8 +173,10 @@ bool is_icelake(void)
     PDEBUG("ext model:  %#04x=%d\n", xmodel, xmodel);
     //PDEBUG("ext family: %#08x=%d\n", xfamily, xfamily);
 
-    bool icelake = (model == 0x66); /* 102 in binary */
-    PDEBUG("Ice Lake? %s\n", icelake ? "yes" : "no");
+    /* from https://en.wikichip.org/wiki/intel/cpuid */
+    bool icelake = ( (model == 0x7d) || /* 125 in binary (Y) */
+                     (model == 0x7e) ); /* 126 in binary (U) */
+    PDEBUG("Ice Lake client? %s\n", icelake ? "yes" : "no");
 
     return (icelake);
 }
@@ -216,7 +218,9 @@ bool is_knm(void)
     return (knm);
 }
 
-bool has_skx_avx512(void)
+/* detect the AVX-512 set added in Skylake server:
+ * AVX-512 F,DQ,CD,BW,VL */
+bool has_avx512_skx(void)
 {
     /* leaf 7 - AVX-512 features */
     uint32_t leaf7[4]={0x7,0x0,0x0,0x0};
@@ -233,6 +237,7 @@ bool has_skx_avx512(void)
     return (skx);
 }
 
+/* AVX-512 VNNI first appeared in CLX */
 bool has_avx512_vnni(void)
 {
     /* leaf 7 - AVX-512 features */
@@ -246,6 +251,7 @@ bool has_avx512_vnni(void)
     return (vnni);
 }
 
+/* AVX-512 VPOPCNTDQ first appeared in KNM and SNC */
 bool has_avx512_vpopcntdq(void)
 {
     /* leaf 7 - AVX-512 features */
@@ -257,6 +263,25 @@ bool has_avx512_vpopcntdq(void)
     bool vpopcntdq = (leaf7[2] & 1u<<14); /* AVX-512VPOPCNTDQ */
 
     return (vpopcntdq);
+}
+
+/* detect the AVX-512 set added in SNC:
+ * AVX-512 VBMI2,GFNI,VAES,VPCLMULQDQ,BITALG */
+bool has_avx512_snc(void)
+{
+    /* leaf 7 - AVX-512 features */
+    uint32_t leaf7[4]={0x7,0x0,0x0,0x0};
+
+    __cpuid_count(leaf7[0], leaf7[2], leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
+    PDEBUG("0x7: %x,%x,%x,%x\n", leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
+
+    bool snc = (leaf7[2] & 1u<< 6) && /* AVX-512VBMI2      */
+               (leaf7[2] & 1u<< 8) && /* AVX-512GFNI       */
+               (leaf7[2] & 1u<< 9) && /* AVX-512VAES       */
+               (leaf7[2] & 1u<<10) && /* AVX-512VPCLMULQDQ */
+               (leaf7[2] & 1u<<12);   /* AVX-512BITALG     */
+
+    return (snc);
 }
 
 bool has_avx512_bf16(void)
@@ -284,7 +309,7 @@ int vpu_count(void)
 
     /* Note that Skylake, Cascade Lake and Cooper Lake all share the same
      * CPUID bits for model and extended model. */
-    if ( is_skylake_server() && has_skx_avx512() ) {
+    if ( is_skylake_server() && has_avx512_skx() ) {
         char cpu_name[32] = {0};
         get_cpu_name32(cpu_name);
 
@@ -357,17 +382,29 @@ int vpu_count(void)
         }
     }
 #ifdef SUPPORT_ICELAKE
-    else if ( is_icelake() ) {
+    else if ( is_icelake_client() ) {
         char cpu_name[32] = {0};
         get_cpu_name32(cpu_name);
 
-        PDEBUG("Ice Lake AVX-512 detected\n");
+        PDEBUG("Ice Lake client detected\n");
         PDEBUG("cpu_name = %s\n", cpu_name);
-        PDEBUG("cpu_name[9] = %c\n", cpu_name[9]);
-        PDEBUG("cpu_name[17] = %c\n", cpu_name[17]);
 
-        /* Update this once information is available... */
-        return -1;
+#ifdef DEBUG
+        if ( has_avx512_skx() ) {
+            PDEBUG("AVX-512 F,CD,DQ,BW,VL detected\n");
+        }
+        if ( has_avx512_vpopcntdq() ) {
+            PDEBUG("AVX-512 VPOPCNTDQ detected\n");
+        }
+        if ( has_avx512_snc() ) {
+            PDEBUG("AVX-512 VBMI2,GFNI,VAES,VPCLMULQDQ,BITALG detected\n");
+        }
+#endif
+
+        /* https://software.intel.com/sites/default/files/managed/9e/bc/64-ia-32-architectures-optimization-manual.pdf says:
+         * "All processors based on Ice Lake Client microarchitecture contain a single 512-bit FMA unit,
+         * whereas some of the processors based on Skylake Server microarchitecture contain two such units." */
+        return 1;
     }
 #endif /* SUPPORT_ICELAKE */
 #ifdef SUPPORT_XEON_PHI
