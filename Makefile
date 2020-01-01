@@ -1,9 +1,9 @@
-CC = icc
+CC = gcc
 CFLAGS = -Wall -g3 -O3 -fopenmp -std=c99
 
 CFLAGS += -DDEBUG
 CFLAGS += -DSUPPORT_XEON_PHI
-#CFLAGS += -DSUPPORT_ICELAKE
+CFLAGS += -DSUPPORT_ICELAKE
 
 all: test.x time.x empirical.x
 

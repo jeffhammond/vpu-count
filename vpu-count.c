@@ -142,7 +142,7 @@ bool is_skylake_server(void)
     return (skylake_server);
 }
 
-bool is_icelake(void)
+bool is_icelake_client(void)
 {
     /* leaf 1 - Model, Family, etc. */
     uint32_t leaf1[4]={0x1,0x0,0x0,0x0};
@@ -173,8 +173,10 @@ bool is_icelake(void)
     PDEBUG("ext model:  %#04x=%d\n", xmodel, xmodel);
     //PDEBUG("ext family: %#08x=%d\n", xfamily, xfamily);
 
-    bool icelake = (model == 0x66); /* 102 in binary */
-    PDEBUG("Ice Lake? %s\n", icelake ? "yes" : "no");
+    /* from https://en.wikichip.org/wiki/intel/cpuid */
+    bool icelake = ( (model == 0x7d) || /* 125 in binary (Y) */
+                     (model == 0x7e) ); /* 126 in binary (U) */
+    PDEBUG("Ice Lake client? %s\n", icelake ? "yes" : "no");
 
     return (icelake);
 }
@@ -357,14 +359,19 @@ int vpu_count(void)
         }
     }
 #ifdef SUPPORT_ICELAKE
-    else if ( is_icelake() ) {
+    else if ( is_icelake_client() ) {
         char cpu_name[32] = {0};
         get_cpu_name32(cpu_name);
 
-        PDEBUG("Ice Lake AVX-512 detected\n");
+        PDEBUG("Ice Lake client detected\n");
         PDEBUG("cpu_name = %s\n", cpu_name);
-        PDEBUG("cpu_name[9] = %c\n", cpu_name[9]);
-        PDEBUG("cpu_name[17] = %c\n", cpu_name[17]);
+
+        if ( has_skx_avx512() ) {
+            PDEBUG("AVX-512 F,CD,DQ,BW,VL detected\n");
+        }
+        if ( has_avx512_vpopcntdq() ) {
+            PDEBUG("AVX-512 VPOPCNTDQ detected\n");
+        }
 
         /* Update this once information is available... */
         return -1;
