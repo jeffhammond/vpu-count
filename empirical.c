@@ -38,9 +38,9 @@
 
 #include <immintrin.h>
 
-#if 1
+#if _OPENMP
 #include <omp.h>
-#else
+#elif USE_MPI
 #include <mpi.h>
 #endif
 
@@ -206,7 +206,7 @@ int measure(void)
 
 int main(void)
 {
-#if 1
+#if _OPENMP
     #pragma omp parallel
     {
         int vpu = measure();
@@ -215,7 +215,7 @@ int main(void)
             printf("vpu=%d\n", vpu);
         }
     }
-#else
+#elif USE_MPI
     MPI_Init(NULL,NULL);
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD,&rank);
@@ -224,6 +224,9 @@ int main(void)
     MPI_Barrier(MPI_COMM_WORLD);
     printf("%d: vpu=%d\n", rank, vpu);
     MPI_Finalize();
+#else
+    int vpu = measure();
+    printf("vpu=%d\n", vpu);
 #endif
     return 0;
 }
