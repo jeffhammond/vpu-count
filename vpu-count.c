@@ -401,8 +401,10 @@ int vpu_count(void)
         }
 #endif
 
-        /* Update this once information is available... */
-        return -1;
+        /* https://software.intel.com/sites/default/files/managed/9e/bc/64-ia-32-architectures-optimization-manual.pdf says:
+         * "All processors based on Ice Lake Client microarchitecture contain a single 512-bit FMA unit,
+         * whereas some of the processors based on Skylake Server microarchitecture contain two such units." */
+        return 1;
     }
 #endif /* SUPPORT_ICELAKE */
 #ifdef SUPPORT_XEON_PHI
