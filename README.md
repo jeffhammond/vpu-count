@@ -164,3 +164,12 @@ This information is available from https://ark.intel.com/products/series/123588/
 | Intel® Core™ i9-10900X X-series Processor         | 2 |
 | Intel® Core™ i9-10920X X-series Processor         | 2 |
 | Intel® Core™ i9-10940X X-series Processor         | 2 |
+
+## Intel® Core™ U/Y-series Processors
+
+### [Ice Lake](https://ark.intel.com/compare/196597,197120,196591,196592,196603,197119,197121,196588,197122,197123)
+
+From https://software.intel.com/sites/default/files/managed/9e/bc/64-ia-32-architectures-optimization-manual.pdf, Section 2.1.1.5:
+> All processors based on Ice Lake Client microarchitecture contain a single 512-bit FMA unit...
+
+
