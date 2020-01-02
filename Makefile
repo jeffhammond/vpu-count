@@ -6,6 +6,7 @@ INTEL_STATIC = -static-intel -no-intel-extensions
 CFLAGS += -DDEBUG
 CFLAGS += -DSUPPORT_XEON_PHI
 CFLAGS += -DSUPPORT_ICELAKE
+CFLAGS += -DSUPPORT_CANNONLAKE
 
 all: test.x time.x empirical.x
 

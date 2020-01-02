@@ -142,6 +142,44 @@ bool is_skylake_server(void)
     return (skylake_server);
 }
 
+bool is_cannonlake_client(void)
+{
+    /* leaf 1 - Model, Family, etc. */
+    uint32_t leaf1[4]={0x1,0x0,0x0,0x0};
+
+    __cpuid(leaf1[0], leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
+    PDEBUG("0x1: %x,%x,%x,%x\n", leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
+
+    //uint32_t stepping  = (leaf1[0]      ) & 0x0f;
+    uint32_t model     = (leaf1[0] >>  4) & 0x0f;
+    uint32_t family    = (leaf1[0] >>  8) & 0x0f;
+    //uint32_t proctype  = (leaf1[0] >> 12) & 0x03;
+    uint32_t xmodel    = (leaf1[0] >> 16) & 0x0f;
+    //uint32_t xfamily   = (leaf1[0] >> 20) & 0xff;
+
+    if (family == 0x06) {
+        model  += (xmodel << 4);
+    }
+    else if (family == 0x0f) {
+        model  += (xmodel << 4);
+        //family += xfamily;
+    }
+
+    PDEBUG("signature:  %#08x\n", (leaf1[0]) );
+    //PDEBUG("stepping:   %#04x=%d\n", stepping, stepping);
+    PDEBUG("model:      %#04x=%d\n", model, model);
+    PDEBUG("family:     %#04x=%d\n", family, family);
+    //PDEBUG("proc type:  %#04x=%d\n", proctype, proctype);
+    PDEBUG("ext model:  %#04x=%d\n", xmodel, xmodel);
+    //PDEBUG("ext family: %#08x=%d\n", xfamily, xfamily);
+
+    /* from https://en.wikichip.org/wiki/intel/cpuid */
+    bool cannonlake = (model == 0x66); /* 102 in binary */
+    PDEBUG("Cannon Lake client? %s\n", cannonlake ? "yes" : "no");
+
+    return (cannonlake);
+}
+
 bool is_icelake_client(void)
 {
     /* leaf 1 - Model, Family, etc. */
@@ -302,6 +340,22 @@ bool has_avx512_vpopcntdq(void)
     return (vpopcntdq);
 }
 
+/* detect the AVX-512 set added in CNL:
+ * AVX-512 {SKX},VBMI,IFMA */
+bool has_avx512_cnl(void)
+{
+    /* leaf 7 - AVX-512 features */
+    uint32_t leaf7[4]={0x7,0x0,0x0,0x0};
+
+    __cpuid_count(leaf7[0], leaf7[2], leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
+    PDEBUG("0x7: %x,%x,%x,%x\n", leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
+
+    bool cnl = (leaf7[1] & 1u<<21) && /* AVX-512IFMA */
+               (leaf7[2] & 1u<< 1);   /* AVX-512VBMI */
+
+    return (cnl);
+}
+
 /* detect the AVX-512 set added in SNC:
  * AVX-512 VBMI2,GFNI,VAES,VPCLMULQDQ,BITALG */
 bool has_avx512_snc(void)
@@ -444,6 +498,26 @@ int vpu_count(void)
         return 1;
     }
 #endif /* SUPPORT_ICELAKE */
+#ifdef SUPPORT_CANNONLAKE
+    else if ( is_cannonlake_client() ) {
+        PDEBUG("Cannon Lake client detected\n");
+
+#ifdef DEBUG
+        char cpu_name[32] = {0};
+        get_cpu_name32(cpu_name);
+        PDEBUG("cpu_name = %s\n", cpu_name);
+
+        if ( has_avx512_skx() ) {
+            PDEBUG("AVX-512 F,CD,DQ,BW,VL detected\n");
+        }
+        if ( has_avx512_cnl() ) {
+            PDEBUG("AVX-512 VBMI,IFMA detected\n");
+        }
+#endif
+
+        return 1;
+    }
+#endif /* SUPPORT_CANNONLAKE */
 #ifdef SUPPORT_XEON_PHI
     else if ( is_knl() || is_knm() ) {
         return 2;
