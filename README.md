@@ -1,3 +1,14 @@
+# Usage
+
+```sh
+make
+./test.x
+```
+
+Debug printing is on by default.  That is because this is an education project.  If you want to use this code in product, please modify appropriately.  Without debug printing, the cost of calling `vpu_count()` may be as low as 2.2 microseconds.
+
+The program `empirical.x` is not recommended but exists in the repository for historical reasons.
+
 # Summary
 
 The intended user of this project is the developer of a numerical library that needs to know the throughput of floating-point FMA (fused multiply-add) on Intel® processors that support AVX-512.  *This project does not attempt to address the throughput of other operations, such as shuffles, permutations, or non-floating-point instructions.*
