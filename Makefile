@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -g3 -O3 -fopenmp -std=c99
+CFLAGS = -Wall -Os -std=c99
 
 INTEL_STATIC = -static-intel -no-intel-extensions
 
@@ -7,7 +7,7 @@ CFLAGS += -DDEBUG
 CFLAGS += -DSUPPORT_XEON_PHI
 CFLAGS += -DSUPPORT_ICELAKE
 
-all: test.x time.x empirical.x
+all: test.x #time.x empirical.x
 
 # Unfortunately, the assembly syntax used in this code
 # does not compile with GCC or Clang.
