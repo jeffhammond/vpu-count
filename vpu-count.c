@@ -181,6 +181,43 @@ bool is_icelake_client(void)
     return (icelake);
 }
 
+bool is_icelake_server(void)
+{
+    /* leaf 1 - Model, Family, etc. */
+    uint32_t leaf1[4]={0x1,0x0,0x0,0x0};
+
+    __cpuid(leaf1[0], leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
+    PDEBUG("0x1: %x,%x,%x,%x\n", leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
+
+    //uint32_t stepping  = (leaf1[0]      ) & 0x0f;
+    uint32_t model     = (leaf1[0] >>  4) & 0x0f;
+    uint32_t family    = (leaf1[0] >>  8) & 0x0f;
+    //uint32_t proctype  = (leaf1[0] >> 12) & 0x03;
+    uint32_t xmodel    = (leaf1[0] >> 16) & 0x0f;
+    //uint32_t xfamily   = (leaf1[0] >> 20) & 0xff;
+
+    if (family == 0x06) {
+        model  += (xmodel << 4);
+    }
+    else if (family == 0x0f) {
+        model  += (xmodel << 4);
+        //family += xfamily;
+    }
+
+    PDEBUG("signature:  %#08x\n", (leaf1[0]) );
+    //PDEBUG("stepping:   %#04x=%d\n", stepping, stepping);
+    PDEBUG("model:      %#04x=%d\n", model, model);
+    PDEBUG("family:     %#04x=%d\n", family, family);
+    //PDEBUG("proc type:  %#04x=%d\n", proctype, proctype);
+    PDEBUG("ext model:  %#04x=%d\n", xmodel, xmodel);
+    //PDEBUG("ext family: %#08x=%d\n", xfamily, xfamily);
+
+    bool icelake = (model == 0x86); /* 134 in binary */
+    PDEBUG("Ice Lake server? %s\n", icelake ? "yes" : "no");
+
+    return (icelake);
+}
+
 bool is_knl(void)
 {
     /* leaf 7 - AVX-512 features */
