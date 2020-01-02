@@ -341,7 +341,7 @@ bool has_avx512_vpopcntdq(void)
 }
 
 /* detect the AVX-512 set added in CNL:
- * AVX-512 {SKX},VBMI,IFMA */
+ * AVX-512 VBMI,IFMA */
 bool has_avx512_cnl(void)
 {
     /* leaf 7 - AVX-512 features */
