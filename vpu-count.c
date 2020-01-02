@@ -383,13 +383,13 @@ int vpu_count(void)
     }
 #ifdef SUPPORT_ICELAKE
     else if ( is_icelake_client() ) {
-        char cpu_name[32] = {0};
-        get_cpu_name32(cpu_name);
-
         PDEBUG("Ice Lake client detected\n");
-        PDEBUG("cpu_name = %s\n", cpu_name);
 
 #ifdef DEBUG
+        char cpu_name[32] = {0};
+        get_cpu_name32(cpu_name);
+        PDEBUG("cpu_name = %s\n", cpu_name);
+
         if ( has_avx512_skx() ) {
             PDEBUG("AVX-512 F,CD,DQ,BW,VL detected\n");
         }
