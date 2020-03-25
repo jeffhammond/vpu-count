@@ -1,4 +1,4 @@
-CC = gcc
+CC = icc
 CFLAGS = -Wall -g3 -O3 -fopenmp -std=c99
 
 INTEL_STATIC = -static-intel -no-intel-extensions
@@ -7,6 +7,7 @@ CFLAGS += -DDEBUG
 CFLAGS += -DSUPPORT_XEON_PHI
 CFLAGS += -DSUPPORT_ICELAKE
 CFLAGS += -DSUPPORT_CANNONLAKE
+CFLAGS += -DSUPPORT_PRE_AVX512
 
 all: test.x time.x empirical.x
 

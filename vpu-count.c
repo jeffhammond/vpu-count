@@ -105,6 +105,47 @@ bool is_intel(void)
     return (intel);
 }
 
+bool is_haswell(void)
+{
+    /* leaf 1 - Model, Family, etc. */
+    uint32_t leaf1[4]={0x1,0x0,0x0,0x0};
+
+    __cpuid(leaf1[0], leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
+    PDEBUG("0x1: %x,%x,%x,%x\n", leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
+
+    //uint32_t stepping  = (leaf1[0]      ) & 0x0f;
+    uint32_t model     = (leaf1[0] >>  4) & 0x0f;
+    uint32_t family    = (leaf1[0] >>  8) & 0x0f;
+    //uint32_t proctype  = (leaf1[0] >> 12) & 0x03;
+    uint32_t xmodel    = (leaf1[0] >> 16) & 0x0f;
+    //uint32_t xfamily   = (leaf1[0] >> 20) & 0xff;
+
+    if (family == 0x06) {
+        model  += (xmodel << 4);
+    }
+    else if (family == 0x0f) {
+        model  += (xmodel << 4);
+        //family += xfamily;
+    }
+
+    PDEBUG("signature:  %#08x\n", (leaf1[0]) );
+    //PDEBUG("stepping:   %#04x=%d\n", stepping, stepping);
+    PDEBUG("model:      %#04x=%d\n", model, model);
+    PDEBUG("family:     %#04x=%d\n", family, family);
+    //PDEBUG("proc type:  %#04x=%d\n", proctype, proctype);
+    PDEBUG("ext model:  %#04x=%d\n", xmodel, xmodel);
+    //PDEBUG("ext family: %#08x=%d\n", xfamily, xfamily);
+
+    /* https://en.wikichip.org/wiki/intel/cpuid */
+    bool haswell = ( (model == 0x3c) || /* 60 in binary (S) */
+                     (model == 0x45) || /* 69 in binary (ULT) */
+                     (model == 0x46) || /* 70 in binary (GT3E) */
+                     (model == 0x3f) ); /* 63 in binary (server) */
+    PDEBUG("Haswell? %s\n", haswell ? "yes" : "no");
+
+    return (haswell);
+}
+
 bool is_skylake_server(void)
 {
     /* leaf 1 - Model, Family, etc. */
@@ -291,6 +332,51 @@ bool is_knm(void)
     PDEBUG("KNM uarch? %s\n", knl ? "yes" : "no");
 
     return (knm);
+}
+
+/* detect the FMA3 set */
+bool has_fma3(void)
+{
+    /* leaf 1 - basic features */
+    uint32_t leaf1[4]={0x7,0x0,0x0,0x0};
+
+    __cpuid_count(leaf1[0], leaf1[2], leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
+    PDEBUG("0x1: %x,%x,%x,%x\n", leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
+
+    bool fma = (leaf1[2] & 1u<<12); /* FMA3 */
+    PDEBUG("FMA3? %s\n", fma ? "yes" : "no");
+
+    return (fma);
+}
+
+/* detect the FMA4 set */
+bool has_fma4(void)
+{
+    /* leaf 80000001h - extended features */
+    uint32_t leaf1[4]={0x80000001,0x0,0x0,0x0};
+
+    __cpuid_count(leaf1[0], leaf1[2], leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
+    PDEBUG("0x1: %x,%x,%x,%x\n", leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
+
+    bool fma = (leaf1[2] & 1u<<16); /* FMA4 */
+    PDEBUG("FMA4? %s\n", fma ? "yes" : "no");
+
+    return (fma);
+}
+
+/* detect the AVX2 set */
+bool has_avx2(void)
+{
+    /* leaf 7 - AVX features */
+    uint32_t leaf7[4]={0x7,0x0,0x0,0x0};
+
+    __cpuid_count(leaf7[0], leaf7[2], leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
+    PDEBUG("0x7: %x,%x,%x,%x\n", leaf7[0], leaf7[1], leaf7[2], leaf7[3]);
+
+    bool avx2 = (leaf7[1] & 1u<<5); /* AVX2 */
+    PDEBUG("AVX2? %s\n", avx2 ? "yes" : "no");
+
+    return (avx2);
 }
 
 /* detect the AVX-512 set added in Skylake server:
@@ -514,7 +600,6 @@ int vpu_count(void)
             PDEBUG("AVX-512 VBMI,IFMA detected\n");
         }
 #endif
-
         return 1;
     }
 #endif /* SUPPORT_CANNONLAKE */
@@ -523,6 +608,25 @@ int vpu_count(void)
         return 2;
     }
 #endif /* SUPPORT_XEON_PHI */
+#ifdef SUPPORT_PRE_AVX512
+    else if ( has_avx2() ) {
+        PDEBUG("AVX2 detected\n");
+
+#ifdef DEBUG
+        char cpu_name[32] = {0};
+        get_cpu_name32(cpu_name);
+        PDEBUG("cpu_name = %s\n", cpu_name);
+
+        if ( has_fma3() ) {
+            PDEBUG("FMA3 detected\n");
+        }
+        if ( has_fma4() ) {
+            PDEBUG("FMA4 detected\n");
+        }
+#endif
+        return 0;
+    }
+#endif /* SUPPORT_PRE_AVX512 */
 #ifdef DEBUG
     else {
         char cpu_name[48] = {0};
