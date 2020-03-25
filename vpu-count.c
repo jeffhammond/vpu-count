@@ -338,7 +338,7 @@ bool is_knm(void)
 bool has_fma3(void)
 {
     /* leaf 1 - basic features */
-    uint32_t leaf1[4]={0x7,0x0,0x0,0x0};
+    uint32_t leaf1[4]={0x1,0x0,0x0,0x0};
 
     __cpuid_count(leaf1[0], leaf1[2], leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
     PDEBUG("0x1: %x,%x,%x,%x\n", leaf1[0], leaf1[1], leaf1[2], leaf1[3]);
