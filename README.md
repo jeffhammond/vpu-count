@@ -107,6 +107,24 @@ This information is available from https://ark.intel.com/content/www/us/en/ark/p
 | Intel® Xeon® Silver 4208 Processor   | 1 |
 | Intel® Xeon® Bronze 3204 Processor   | 1 |
 
+# 3rd Generation Intel® Xeon® Scalable Processors (Cooper Lake)
+
+This information is available from https://ark.intel.com/content/www/us/en/ark/products/series/204098/3rd-generation-intel-xeon-scalable-processors.html.
+
+| Processor Model Name | Number of AVX-512 FMAs |
+|----------------------|----------------|
+Intel® Xeon® Platinum 8380HL Processor 
+Intel® Xeon® Platinum 8380H Processor
+Intel® Xeon® Platinum 8376HL Processor
+Intel® Xeon® Platinum 8376H Processor
+Intel® Xeon® Platinum 8354H Processor
+Intel® Xeon® Platinum 8353H Processor
+Intel® Xeon® Gold 6348H Processor
+Intel® Xeon® Gold 6328HL Processor
+Intel® Xeon® Gold 6328H Processor
+Intel® Xeon® Gold 5320H Processor
+Intel® Xeon® Gold 5318H Processor
+
 ## Intel® Xeon® W Processors
 
 This information is available from https://ark.intel.com/products/series/125035/Intel-Xeon-Processor-W-Family.
