@@ -113,17 +113,17 @@ This information is available from https://ark.intel.com/content/www/us/en/ark/p
 
 | Processor Model Name | Number of AVX-512 FMAs |
 |----------------------|----------------|
-Intel® Xeon® Platinum 8380HL Processor 
-Intel® Xeon® Platinum 8380H Processor
-Intel® Xeon® Platinum 8376HL Processor
-Intel® Xeon® Platinum 8376H Processor
-Intel® Xeon® Platinum 8354H Processor
-Intel® Xeon® Platinum 8353H Processor
-Intel® Xeon® Gold 6348H Processor
-Intel® Xeon® Gold 6328HL Processor
-Intel® Xeon® Gold 6328H Processor
-Intel® Xeon® Gold 5320H Processor
-Intel® Xeon® Gold 5318H Processor
+| Intel® Xeon® Platinum 8380HL Processor  | 2 |
+| Intel® Xeon® Platinum 8380H Processor   | 2 |
+| Intel® Xeon® Platinum 8376HL Processor  | 2 |
+| Intel® Xeon® Platinum 8376H Processor   | 2 |
+| Intel® Xeon® Platinum 8354H Processor   | 2 |
+| Intel® Xeon® Platinum 8353H Processor   | 2 |
+| Intel® Xeon® Gold 6348H Processor       | 2 |
+| Intel® Xeon® Gold 6328HL Processor      | 2 |
+| Intel® Xeon® Gold 6328H Processor       | 2 |
+| Intel® Xeon® Gold 5320H Processor       | 2 |
+| Intel® Xeon® Gold 5318H Processor       | 2 |
 
 ## Intel® Xeon® W Processors
 
