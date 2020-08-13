@@ -501,6 +501,14 @@ int vpu_count(void)
             return 2;
         }
         else if (cpu_name[9] == 'X') {
+            /* Cooper Lake: Intel(R) Xeon(R) Platinum _3__H... */
+            if (cpu_name[23] == '3') {
+#ifdef DEBUG
+                fprintf(stderr,"Cooper Lake detected, BF16 %s\n", cpu_name,
+                        has_avx512_bf16() ? "found" : "not found" );
+#endif
+                return 2;
+            }
             /* Xeon Scalable series: "Intel(R) Xeon(R) Platinum..." */
             if (cpu_name[17] == 'P') {
                 return 2;
