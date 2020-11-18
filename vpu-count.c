@@ -504,8 +504,7 @@ int vpu_count(void)
             /* Cooper Lake: Intel(R) Xeon(R) Platinum _3__H... */
             if (cpu_name[23] == '3') {
 #ifdef DEBUG
-                fprintf(stderr,"Cooper Lake detected, BF16 %s\n", cpu_name,
-                        has_avx512_bf16() ? "found" : "not found" );
+                fprintf(stderr,"Cooper Lake detected, BF16 %s\n", has_avx512_bf16() ? "found" : "not found" );
 #endif
                 return 2;
             }
