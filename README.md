@@ -107,7 +107,7 @@ This information is available from https://ark.intel.com/content/www/us/en/ark/p
 | Intel® Xeon® Silver 4208 Processor   | 1 |
 | Intel® Xeon® Bronze 3204 Processor   | 1 |
 
-# 3rd Generation Intel® Xeon® Scalable Processors (Cooper Lake)
+## 3rd Generation Intel® Xeon® Scalable Processors (Cooper Lake)
 
 This information is available from https://ark.intel.com/content/www/us/en/ark/products/series/204098/3rd-generation-intel-xeon-scalable-processors.html.
 
@@ -124,6 +124,53 @@ This information is available from https://ark.intel.com/content/www/us/en/ark/p
 | Intel® Xeon® Gold 6328H Processor       | 2 |
 | Intel® Xeon® Gold 5320H Processor       | 2 |
 | Intel® Xeon® Gold 5318H Processor       | 2 |
+
+## 3rd Generation Intel® Xeon® Scalable Processors (Ice Lake)
+
+This information is available from https://ark.intel.com/content/www/us/en/ark/products/series/204098/3rd-generation-intel-xeon-scalable-processors.html.
+
+| Processor Model Name | Number of AVX-512 FMAs |
+|----------------------|----------------|
+| Intel® Xeon® Platinum 8380 Processor   | 2 |
+| Intel® Xeon® Platinum 8368Q Processor  | 2 |
+| Intel® Xeon® Platinum 8368 Processor   | 2 |
+| Intel® Xeon® Platinum 8360Y Processor  | 2 |
+| Intel® Xeon® Platinum 8360HL Processor | 2 |
+| Intel® Xeon® Platinum 8360H Processor  | 2 |
+| Intel® Xeon® Platinum 8358P Processor  | 2 |
+| Intel® Xeon® Platinum 8358 Processor   | 2 |
+| Intel® Xeon® Platinum 8356H Processor  | 2 |
+| Intel® Xeon® Platinum 8352Y Processor  | 2 |
+| Intel® Xeon® Platinum 8352V Processor  | 2 |
+| Intel® Xeon® Platinum 8352S Processor  | 2 |
+| Intel® Xeon® Platinum 8351N Processor  | 2 |
+| Intel® Xeon® Gold 6354 Processor       | 2 |
+| Intel® Xeon® Gold 6348 Processor       | 2 |
+| Intel® Xeon® Gold 6346 Processor       | 2 |
+| Intel® Xeon® Gold 6342 Processor       | 2 |
+| Intel® Xeon® Gold 6338T Processor      | 2 |
+| Intel® Xeon® Gold 6338N Processor      | 2 |
+| Intel® Xeon® Gold 6338 Processor       | 2 |
+| Intel® Xeon® Gold 6336Y Processor      | 2 |
+| Intel® Xeon® Gold 6334 Processor       | 2 |
+| Intel® Xeon® Gold 6330N Processor      | 2 |
+| Intel® Xeon® Gold 6330H Processor      | 2 |
+| Intel® Xeon® Gold 6330 Processor       | 2 |
+| Intel® Xeon® Gold 6326 Processor       | 2 |
+| Intel® Xeon® Gold 6314U Processor      | 2 |
+| Intel® Xeon® Gold 6312U Processor      | 2 |
+| Intel® Xeon® Gold 5320T Processor      | 2 |
+| Intel® Xeon® Gold 5320 Processor       | 2 |
+| Intel® Xeon® Gold 5318Y Processor      | 2 |
+| Intel® Xeon® Gold 5318S Processor      | 2 |
+| Intel® Xeon® Gold 5318N Processor      | 2 |
+| Intel® Xeon® Gold 5317 Processor       | 2 |
+| Intel® Xeon® Gold 5315Y Processor      | 2 |
+| Intel® Xeon® Silver 4316 Processor     | 2 |
+| Intel® Xeon® Silver 4314 Processor     | 2 |
+| Intel® Xeon® Silver 4310T Processor    | 2 |
+| Intel® Xeon® Silver 4310 Processor     | 2 |
+| Intel® Xeon® Silver 4309Y Processor    | 2 |
 
 ## Intel® Xeon® W Processors
 
@@ -200,5 +247,4 @@ This information is available from https://ark.intel.com/products/series/123588/
 
 From https://software.intel.com/sites/default/files/managed/9e/bc/64-ia-32-architectures-optimization-manual.pdf, Section 2.1.1.5:
 > All processors based on Ice Lake Client microarchitecture contain a single 512-bit FMA unit...
-
 
