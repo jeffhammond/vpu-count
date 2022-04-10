@@ -332,7 +332,7 @@ bool is_tigerlake_client(void)
     bool tigerlake = (model == 0x8f);
     PDEBUG("Tiger Lake client? %s\n", tigerlake ? "yes" : "no");
 
-    return (icelake);
+    return (tigerlake);
 }
 
 bool is_knl(void)
